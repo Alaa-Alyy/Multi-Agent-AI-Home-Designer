@@ -1,0 +1,30 @@
+{
+  "name": "roomly-ai",
+  "version": "1.0.0",
+  "description": "Roomly AI — AI Room Redecoration Platform with n8n workflow integration, Vision, RAG, Budget Allocation, Credential-ready Search, HITL Product Selection, and OpenAI Image Generation.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/knowledge/seedKnowledgeBase.js",
+    "test-pipeline": "node tests/test-pipeline.js"
+  },
+  "keywords": [
+    "room-redecoration",
+    "interior-design",
+    "ai",
+    "n8n",
+    "vision",
+    "rag",
+    "budget-allocation",
+    "openai"
+  ],
+  "author": "Roomly AI Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1"
+  }
+}

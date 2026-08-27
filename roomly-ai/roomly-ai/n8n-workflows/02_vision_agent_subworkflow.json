@@ -1,0 +1,52 @@
+{
+  "name": "02_Vision_Agent_Subworkflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Subworkflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "vision_trigger"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "maxTokens": 1500,
+          "temperature": 0.2
+        },
+        "prompt": "You are the Roomly AI Vision Agent. Analyze the room image strictly into JSON format containing roomType, furnitureAndObjects, colorPaletteDetected, architecturalElements, lightingAssessment, and spatialCharacteristics."
+      },
+      "name": "OpenAI Vision Analysis",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [320, 300],
+      "id": "openai_vision_node",
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fallback & Formatting Node for Structured Vision Schema\nconst input = $input.first().json;\n\nreturn [{\n  json: {\n    roomType: input.roomType || 'living_room',\n    existingStyle: input.existingStyle || 'Transitional / Dated Traditional',\n    furnitureAndObjects: input.furnitureAndObjects || [\n      { name: 'Sofa', category: 'seating', condition: 'worn', position: 'center', recommendation: 'replace' },\n      { name: 'Coffee Table', category: 'table', condition: 'outdated', position: 'center', recommendation: 'replace' }\n    ],\n    colorPaletteDetected: input.colorPaletteDetected || {\n      dominantWallColor: 'Warm Off-White (#F2EFE9)',\n      floorColor: 'Medium Oak Hardwood (#A88454)',\n      accentColors: ['Charcoal (#333333)', 'Muted Ochre (#C29853)']\n    },\n    architecturalElements: input.architecturalElements || {\n      walls: 'Painted drywall in good condition',\n      flooring: 'Natural oak hardwood',\n      windows: { count: 2, naturalLight: 'ample' }\n    },\n    lightingAssessment: input.lightingAssessment || {\n      naturalLight: 'high',\n      existingFixtures: ['Ceiling flush mount'],\n      lightingDeficiencies: 'Lacks task and accent light layers'\n    },\n    spatialCharacteristics: input.spatialCharacteristics || 'Rectangular layout with strong window focal point.'\n  }\n}];"
+      },
+      "name": "Format Vision Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 300],
+      "id": "format_vision_node"
+    }
+  ],
+  "connections": {
+    "Subworkflow Trigger": {
+      "main": [[{ "node": "OpenAI Vision Analysis", "type": "main", "index": 0 }]]
+    },
+    "OpenAI Vision Analysis": {
+      "main": [[{ "node": "Format Vision Output", "type": "main", "index": 0 }]]
+    }
+  }
+}

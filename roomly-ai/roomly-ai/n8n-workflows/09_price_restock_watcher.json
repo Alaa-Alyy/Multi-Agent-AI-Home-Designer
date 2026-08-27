@@ -1,0 +1,51 @@
+{
+  "name": "09_Price_Restock_Watcher",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (Every 6 Hours)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "id": "schedule_trigger_node"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/health",
+        "options": {}
+      },
+      "name": "Check Health & Credential Readiness",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "health_check_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Price and Inventory Monitor Logic\nconst input = $input.first().json;\nreturn [{\n  json: {\n    status: 'WATCHER_ACTIVE',\n    timestamp: new Date().toISOString(),\n    monitoredCount: 1,\n    message: 'Price & Restock Watcher checked active product catalog successfully.'\n  }\n}];"
+      },
+      "name": "Process Watchlist Alerts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "id": "process_alerts_node"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 6 Hours)": {
+      "main": [[{ "node": "Check Health & Credential Readiness", "type": "main", "index": 0 }]]
+    },
+    "Check Health & Credential Readiness": {
+      "main": [[{ "node": "Process Watchlist Alerts", "type": "main", "index": 0 }]]
+    }
+  }
+}

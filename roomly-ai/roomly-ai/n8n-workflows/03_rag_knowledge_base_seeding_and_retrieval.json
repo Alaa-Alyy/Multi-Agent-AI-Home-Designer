@@ -1,0 +1,51 @@
+{
+  "name": "03_RAG_Knowledge_Base_Seeding_and_Retrieval",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "RAG Query Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "rag_trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/rag",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Retrieve Interior Design Rules (Vector Store)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "rag_http_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rag = $input.first().json;\nreturn [{\n  json: {\n    retrievedStyle: rag.retrievedStyle,\n    spatialRules: rag.spatialRules,\n    colorRules: rag.colorRules,\n    safetyRules: rag.safetyRules,\n    designDirectives: rag.designDirectives\n  }\n}];"
+      },
+      "name": "Format RAG Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "id": "format_rag_node"
+    }
+  ],
+  "connections": {
+    "RAG Query Trigger": {
+      "main": [[{ "node": "Retrieve Interior Design Rules (Vector Store)", "type": "main", "index": 0 }]]
+    },
+    "Retrieve Interior Design Rules (Vector Store)": {
+      "main": [[{ "node": "Format RAG Output", "type": "main", "index": 0 }]]
+    }
+  }
+}

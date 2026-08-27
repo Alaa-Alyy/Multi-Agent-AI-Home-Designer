@@ -1,0 +1,169 @@
+{
+  "name": "01_Roomly_Master_Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "roomly/intake",
+        "options": {}
+      },
+      "name": "Webhook Intake Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "node_webhook_trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId || $execution.id }}"
+            },
+            {
+              "name": "state",
+              "value": "INTAKE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Initialize Session State",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "id": "node_init_state"
+    },
+    {
+      "parameters": {
+        "workflowId": "02_vision_agent_subworkflow",
+        "options": {}
+      },
+      "name": "Execute Vision Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "id": "node_exec_vision"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preference Consolidation Agent\nconst input = $input.first().json;\nconst body = input.body || input;\n\nreturn [{\n  json: {\n    sessionId: input.sessionId,\n    roomType: input.visionAnalysis?.roomType || body.roomType || 'living_room',\n    preferredStyle: body.preferredStyle || 'japandi',\n    budget: Number(body.budget) || 3000,\n    occupants: body.occupants || 'adults',\n    mustKeepFurniture: body.mustKeepFurniture || [],\n    state: 'PREFERENCE_ANALYZED'\n  }\n}];"
+      },
+      "name": "Preference Agent Node",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300],
+      "id": "node_pref_agent"
+    },
+    {
+      "parameters": {
+        "workflowId": "03_rag_knowledge_base_seeding_and_retrieval",
+        "options": {}
+      },
+      "name": "Execute RAG Lookup",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "node_exec_rag"
+    },
+    {
+      "parameters": {
+        "workflowId": "04_budget_allocation_agent",
+        "options": {}
+      },
+      "name": "Execute Budget Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "id": "node_exec_budget"
+    },
+    {
+      "parameters": {
+        "workflowId": "05_product_search_and_ranking_agent",
+        "options": {}
+      },
+      "name": "Execute Search & Ranking Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "id": "node_exec_search_rank"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "webhookSuffix": "selection-confirmed",
+        "options": {}
+      },
+      "name": "Wait for User Product Selection (HITL)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1500, 300],
+      "id": "node_wait_hitl"
+    },
+    {
+      "parameters": {
+        "workflowId": "07_image_generation_agent",
+        "options": {}
+      },
+      "name": "Execute Image Generation Agent",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "id": "node_exec_image_gen"
+    },
+    {
+      "parameters": {
+        "workflowId": "08_final_designer_agent",
+        "options": {}
+      },
+      "name": "Execute Final Designer",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1900, 300],
+      "id": "node_exec_final_designer"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2100, 300],
+      "id": "node_respond_webhook"
+    }
+  ],
+  "connections": {
+    "Webhook Intake Trigger": {
+      "main": [[{ "node": "Initialize Session State", "type": "main", "index": 0 }]]
+    },
+    "Initialize Session State": {
+      "main": [[{ "node": "Execute Vision Agent", "type": "main", "index": 0 }]]
+    },
+    "Execute Vision Agent": {
+      "main": [[{ "node": "Preference Agent Node", "type": "main", "index": 0 }]]
+    },
+    "Preference Agent Node": {
+      "main": [[{ "node": "Execute RAG Lookup", "type": "main", "index": 0 }]]
+    },
+    "Execute RAG Lookup": {
+      "main": [[{ "node": "Execute Budget Agent", "type": "main", "index": 0 }]]
+    },
+    "Execute Budget Agent": {
+      "main": [[{ "node": "Execute Search & Ranking Agent", "type": "main", "index": 0 }]]
+    },
+    "Execute Search & Ranking Agent": {
+      "main": [[{ "node": "Wait for User Product Selection (HITL)", "type": "main", "index": 0 }]]
+    },
+    "Wait for User Product Selection (HITL)": {
+      "main": [[{ "node": "Execute Image Generation Agent", "type": "main", "index": 0 }]]
+    },
+    "Execute Image Generation Agent": {
+      "main": [[{ "node": "Execute Final Designer", "type": "main", "index": 0 }]]
+    },
+    "Execute Final Designer": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  }
+}

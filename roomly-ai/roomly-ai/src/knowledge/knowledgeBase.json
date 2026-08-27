@@ -1,0 +1,212 @@
+{
+  "version": "1.0.0",
+  "name": "Roomly AI Interior Design Knowledge Base",
+  "styles": [
+    {
+      "id": "japandi",
+      "name": "Japandi",
+      "description": "A hybrid aesthetic blending Scandinavian functional simplicity and warm, serene Japanese wabi-sabi minimalism.",
+      "keyElements": ["Clean lines", "Low-profile furniture", "Natural unvarnished woods", "Muted earth tones", "Textured ceramics", "Paper lanterns", "Biophilic minimalism"],
+      "materials": ["Light white oak", "Walnut", "Bamboo", "Linen", "Wabi-sabi ceramic", "Jute", "Paper cord"],
+      "recommendedColors": ["#E8E3D9", "#C5BAA8", "#8B8579", "#3E3B36", "#5C6B5E"],
+      "signaturePieces": ["Low-platform sofa", "Paper lantern pendant light", "Slatted oak sideboard", "Minimalist ceramic vase", "Low round ash coffee table"]
+    },
+    {
+      "id": "scandinavian",
+      "name": "Scandinavian",
+      "description": "Nordic interior design emphasizing hygge coziness, luminous light maximization, clean functionality, and organic textures.",
+      "keyElements": ["Bright airy spaces", "Light wood tones", "Plush wool and shearling throws", "Functional storage", "Simple geometric silhouettes"],
+      "materials": ["Bleached pine", "Birch", "Ash", "Wool", "Boucle", "Cotton canvas", "Matte ceramic"],
+      "recommendedColors": ["#F8F9FA", "#E9ECEF", "#DEE2E6", "#6C757D", "#495057", "#A5A58D"],
+      "signaturePieces": ["Tapered leg sofa in oat grey", "Nesting round coffee tables", "Wishbone dining chairs", "Arched brass floor lamp", "High-pile wool Moroccan-style rug"]
+    },
+    {
+      "id": "mid_century_modern",
+      "name": "Mid-Century Modern",
+      "description": "Iconic 1950s-1960s aesthetic defined by sleek architectural curves, organic shapes, rich warm woods, and statement lighting.",
+      "keyElements": ["Tapered peg legs", "Walnut wood tones", "Organic sculptural curves", "Statement brass sputnik lighting", "Bold geometric accents"],
+      "materials": ["American walnut", "Teak", "Brass", "Molded plywood", "Top-grain leather", "Velvet"],
+      "recommendedColors": ["#FAF0CA", "#0D3B66", "#F4D35E", "#EE964B", "#F95738", "#2E4057"],
+      "signaturePieces": ["Tufted walnut-frame leather sofa", "Eames-style lounge chair", "Kidney-shaped coffee table", "Brass multi-arm chandelier", "Geometric flat-weave wool rug"]
+    },
+    {
+      "id": "modern_farmhouse",
+      "name": "Modern Farmhouse",
+      "description": "A comfortable blend of rustic countryside warmth, reclaimed timbers, and crisp contemporary contrast.",
+      "keyElements": ["Shiplap accents", "Black iron hardware", "Reclaimed wood surfaces", "Neutral slipcovered seating", "Woven basket storage"],
+      "materials": ["Distressed oak", "Matte black steel", "Washed linen", "Galvanized metal", "Jute", "Ceramic subway tile"],
+      "recommendedColors": ["#FFFFFF", "#F3F3F3", "#D8D3CD", "#7F7B74", "#2B2B2B", "#6E7565"],
+      "signaturePieces": ["Slipcovered Belgian linen sofa", "Trestle reclaimed wood dining table", "Matte black lantern pendant", "Jute area rug", "Sliding barn-door media console"]
+    },
+    {
+      "id": "industrial",
+      "name": "Industrial",
+      "description": "Urban loft aesthetic showcasing raw architectural bones, exposed brick, distressed metals, and utilitarian character.",
+      "keyElements": ["Exposed brick and concrete", "Piping and ductwork", "Dark metal framing", "Aged vintage leather", "Edison bulb fixtures"],
+      "materials": ["Distressed leather", "Reclaimed iron", "Cast iron", "Concrete", "Reclaimed pine", "Wire glass"],
+      "recommendedColors": ["#343A40", "#495057", "#6C757D", "#8D5B4C", "#A0522D", "#C29B7F"],
+      "signaturePieces": ["Cognac leather Chesterfield sofa", "Factory cart iron coffee table", "Steel frame bookcase", "Pulley pendant light", "Distressed vintage overdyed rug"]
+    },
+    {
+      "id": "bohemian",
+      "name": "Bohemian (Boho Modern)",
+      "description": "Free-spirited, layered interior filled with lush indoor greenery, globally inspired textiles, rattan, and artisanal craft.",
+      "keyElements": ["Layered textiles", "Macrame and fringe", "Abundant houseplants", "Rattan and cane furniture", "Warm terracotta tones"],
+      "materials": ["Rattan", "Wicker", "Cane", "Jute", "Terracotta", "Vintage kilim", "Bamboo"],
+      "recommendedColors": ["#E07A5F", "#3D405B", "#81B29A", "#F2CC8F", "#F4F1DE", "#D4A373"],
+      "signaturePieces": ["Rattan peacock accent chair", "Layered kilim rugs", "Macrame plant hangers", "Live-edge wood coffee table", "Moroccan leather poufs"]
+    },
+    {
+      "id": "minimalist",
+      "name": "Minimalist",
+      "description": "Extreme intentionality, uncluttered sightlines, high-quality materiality, and subtle textural contrast.",
+      "keyElements": ["Zero clutter", "Concealed storage", "Monochromatic palettes", "Sculptural focal points", "Maximum negative space"],
+      "materials": ["Travertine", "Polished microcement", "Matte lacquered MDF", "Boucle", "Brushed stainless steel"],
+      "recommendedColors": ["#FFFFFF", "#F5F5F5", "#E5E5E5", "#CCCCCC", "#222222"],
+      "signaturePieces": ["Floating media unit", "Travertine stone plinth coffee table", "Minimalist flush-mount linear LED", "Seamless tailored sectional", "Sculptural off-white ceramic urn"]
+    },
+    {
+      "id": "coastal",
+      "name": "Coastal Modern",
+      "description": "Breezy, sun-drenched style drawing inspiration from coastal shorelines with natural woven fibers, soft blues, and crisp linens.",
+      "keyElements": ["Abundant natural light", "Airy white curtains", "Seagrass and abaca textures", "Weathered driftwood tones", "Soft ocean hues"],
+      "materials": ["Bleached oak", "Linen", "Seagrass", "Capiz shell", "Rope", "Ceramic"],
+      "recommendedColors": ["#FFFFFF", "#E8F0F2", "#B8D8D8", "#7A9E9F", "#4F6367", "#EE6C4D"],
+      "signaturePieces": ["Slipcovered off-white sectional", "Woven abaca coffee table", "Beaded coastal chandelier", "Driftwood console table", "Blue-striped linen throw pillows"]
+    }
+  ],
+  "colorRules": [
+    {
+      "name": "60-30-10 Proportional Color Harmony",
+      "category": "color_theory",
+      "rule": "Divide room colors into 60% dominant base (walls, large rugs, primary sofa), 30% secondary supporting color (accent chairs, curtains, secondary furniture), and 10% accent color (cushions, artwork, decorative ceramics, hardware)."
+    },
+    {
+      "name": "Warm vs Cool Undertone Cohesion",
+      "category": "color_harmony",
+      "rule": "Avoid clashing undertones by pairing warm whites (cream, ivory, alabaster) with warm woods (oak, walnut, brass) or cool whites (pure white, crisp grey) with cool metals (chrome, black steel, slate)."
+    },
+    {
+      "name": "Biophilic Natural Anchor",
+      "category": "color_harmony",
+      "rule": "Introducing muted botanical greens (sage, eucalyptus, forest) anchors neutral interiors and reduces visual fatigue while harmonizing with light wood tones."
+    }
+  ],
+  "spatialRules": [
+    {
+      "name": "Rug Sizing & Seating Anchor",
+      "category": "living_room",
+      "roomType": "living_room",
+      "rule": "In living rooms, the area rug should be large enough that at least the front two legs of all main seating pieces (sofas and armchairs) sit firmly on the rug. Standard sizes: 8x10 ft or 9x12 ft. Never float a tiny 'postage stamp' rug in the middle."
+    },
+    {
+      "name": "Sofa to Coffee Table Ergonomics",
+      "category": "living_room",
+      "roomType": "living_room",
+      "rule": "Maintain 14 to 18 inches (35 to 45 cm) of clearance between the front edge of the sofa and the coffee table. This provides comfortable legroom while keeping drinks and books within easy arm's reach."
+    },
+    {
+      "name": "Coffee Table Height Ratio",
+      "category": "living_room",
+      "roomType": "living_room",
+      "rule": "The top of the coffee table should be 1 to 2 inches lower than the seat cushion height of the adjacent sofa or sectional, usually between 16 to 18 inches high."
+    },
+    {
+      "name": "Three-Tier Lighting Strategy",
+      "category": "lighting",
+      "roomType": "all",
+      "rule": "Every well-designed room must include 3 distinct layers of light: 1. Ambient lighting (central flush mount, chandelier, or cove lighting for general brightness); 2. Task lighting (desk lamps, floor reading lamps beside armchairs, bedside sconces); 3. Accent lighting (picture lights over art, LED strip backlighting on shelving, uplights)."
+    },
+    {
+      "name": "Wall Art Eye-Level Standard",
+      "category": "decor",
+      "roomType": "all",
+      "rule": "The center point of single wall art pieces or gallery wall arrangements should hang at 57 to 60 inches (145-152 cm) from the finished floor (the average human standing eye-level). When hanging above a sofa or console, leave 8 to 10 inches between the top of the furniture and the bottom of the frame."
+    },
+    {
+      "name": "Curtain High-and-Wide Principle",
+      "category": "window_treatments",
+      "roomType": "all",
+      "rule": "Mount curtain rods 4 to 6 inches above the window frame (or directly below the crown molding/ceiling) and extend the rod 8 to 12 inches wider than the window frame on each side. This tricks the eye into perceiving ceilings as higher and windows as larger, while letting maximum natural light enter."
+    },
+    {
+      "name": "Main Circulation Pathway Clearance",
+      "category": "spatial_layout",
+      "roomType": "all",
+      "rule": "Primary traffic pathways through the room must have a minimum unobstructed walkway clearance of 30 to 36 inches (76 to 91 cm). Secondary pathways between minor furniture pieces require at least 24 inches."
+    },
+    {
+      "name": "TV Viewing Distance & Height",
+      "category": "entertainment",
+      "roomType": "living_room",
+      "rule": "The vertical center of a wall-mounted TV screen should sit at eye level from the seated viewing position (typically 42 inches from the floor). Viewing distance should equal approximately 1.2 to 1.5 times the diagonal screen size."
+    },
+    {
+      "name": "Bedside Nightstand Proportions",
+      "category": "bedroom",
+      "roomType": "bedroom",
+      "rule": "Nightstand height should be within 2 inches of the top of the mattress (level or slightly higher). Nightstand width should be proportional to the bed: 20-24 inches for Queen beds, 26-32 inches for King beds."
+    },
+    {
+      "name": "Dining Table Chandelier Drop",
+      "category": "dining_room",
+      "roomType": "dining_room",
+      "rule": "The bottom of a dining room chandelier or pendant fixture should hang 30 to 36 inches above the surface of the dining table."
+    }
+  ],
+  "safetyAndOccupantRules": [
+    {
+      "name": "Toddler & Child Safety Furniture Standards",
+      "category": "safety",
+      "occupant": "children",
+      "rule": "For homes with toddlers or young children: 1. Avoid sharp-cornered rectangular glass coffee tables; select round, oval, or upholstered storage ottomans; 2. All heavy bookcases, media units, and dressers must be anchored to wall studs; 3. Choose stain-resistant performance fabrics (Crypton, Revolution, Sunbrella) and washable slipcovers."
+    },
+    {
+      "name": "Pet-Friendly Durability Standards",
+      "category": "safety",
+      "occupant": "pets",
+      "rule": "For homes with dogs or cats: 1. Avoid loose loop-pile or open-weave rugs that snag claws; choose low-pile flatweave, indoor/outdoor polypropylene, or machine-washable rugs; 2. Select tight-weave microfiber, distressed leather, or high rub-count performance velvet that resists pet hair and scratching; 3. Ensure indoor plants are strictly non-toxic (safe: Calathea, Parlor Palm, Spider Plant, Money Tree; avoid: Monsteras, Lilies, Philodendrons)."
+    }
+  ],
+  "budgetAllocationModels": {
+    "living_room": {
+      "categories": [
+        { "category": "Seating (Sofa / Sectional / Accent Chairs)", "minPercent": 35, "maxPercent": 45, "defaultPercent": 40, "priority": 1 },
+        { "category": "Tables & Storage (Coffee Table, Side Tables, Media Console)", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
+        { "category": "Area Rug & Window Treatments", "minPercent": 12, "maxPercent": 18, "defaultPercent": 15, "priority": 3 },
+        { "category": "Lighting (Floor, Table, Ceiling Fixtures)", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 4 },
+        { "category": "Wall Art, Mirrors & Decorative Accents", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 5 },
+        { "category": "Contingency / Taxes / Shipping", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 6 }
+      ]
+    },
+    "bedroom": {
+      "categories": [
+        { "category": "Bed Frame & Mattress / Headboard", "minPercent": 40, "maxPercent": 50, "defaultPercent": 45, "priority": 1 },
+        { "category": "Nightstands & Dresser / Storage", "minPercent": 20, "maxPercent": 30, "defaultPercent": 25, "priority": 2 },
+        { "category": "Bedding & Area Rug", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
+        { "category": "Lighting (Bedside Lamps / Sconces / Overhead)", "minPercent": 6, "maxPercent": 12, "defaultPercent": 8, "priority": 4 },
+        { "category": "Curtains, Mirrors & Wall Decor", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 5 },
+        { "category": "Contingency / Delivery", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 6 }
+      ]
+    },
+    "home_office": {
+      "categories": [
+        { "category": "Ergonomic Desk & Chair", "minPercent": 45, "maxPercent": 55, "defaultPercent": 50, "priority": 1 },
+        { "category": "Bookshelf & Storage Solutions", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
+        { "category": "Task & Ambient Lighting", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
+        { "category": "Area Rug & Window Blinds", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 4 },
+        { "category": "Wall Art & Cable Management / Accessories", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 5 },
+        { "category": "Contingency / Shipping", "minPercent": 3, "maxPercent": 8, "defaultPercent": 3, "priority": 6 }
+      ]
+    },
+    "dining_room": {
+      "categories": [
+        { "category": "Dining Table & Chairs Set", "minPercent": 50, "maxPercent": 60, "defaultPercent": 55, "priority": 1 },
+        { "category": "Buffet / Credenza / Sideboard", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
+        { "category": "Pendant Chandelier Lighting", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
+        { "category": "Area Rug & Curtains", "minPercent": 6, "maxPercent": 12, "defaultPercent": 8, "priority": 4 },
+        { "category": "Centerpiece & Wall Art", "minPercent": 3, "maxPercent": 8, "defaultPercent": 5, "priority": 5 }
+      ]
+    }
+  }
+}

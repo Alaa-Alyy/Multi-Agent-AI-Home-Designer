@@ -1,0 +1,51 @@
+{
+  "name": "04_Budget_Allocation_Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Budget Subworkflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "budget_trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/budget",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Calculate Deterministic Budget Allocation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "budget_calc_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const budget = $input.first().json;\nreturn [{\n  json: {\n    totalBudget: budget.totalBudget,\n    allocatedTotal: budget.allocatedTotal,\n    reserveFund: budget.reserveFund,\n    allocations: budget.allocations,\n    search_queries: budget.search_queries\n  }\n}];"
+      },
+      "name": "Format Budget Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "id": "format_budget_node"
+    }
+  ],
+  "connections": {
+    "Budget Subworkflow Trigger": {
+      "main": [[{ "node": "Calculate Deterministic Budget Allocation", "type": "main", "index": 0 }]]
+    },
+    "Calculate Deterministic Budget Allocation": {
+      "main": [[{ "node": "Format Budget Output", "type": "main", "index": 0 }]]
+    }
+  }
+}

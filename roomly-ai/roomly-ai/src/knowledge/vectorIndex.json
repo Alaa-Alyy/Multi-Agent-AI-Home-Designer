@@ -1,0 +1,430 @@
+{
+  "generatedAt": "2026-08-27T10:19:25.976Z",
+  "totalDocuments": 23,
+  "documents": [
+    {
+      "id": "style_japandi",
+      "type": "style",
+      "title": "Japandi Interior Design Style",
+      "content": "Japandi: A hybrid aesthetic blending Scandinavian functional simplicity and warm, serene Japanese wabi-sabi minimalism.. Key Elements: Clean lines, Low-profile furniture, Natural unvarnished woods, Muted earth tones, Textured ceramics, Paper lanterns, Biophilic minimalism. Materials: Light white oak, Walnut, Bamboo, Linen, Wabi-sabi ceramic, Jute, Paper cord. Signature Pieces: Low-platform sofa, Paper lantern pendant light, Slatted oak sideboard, Minimalist ceramic vase, Low round ash coffee table.",
+      "metadata": {
+        "styleId": "japandi",
+        "styleName": "Japandi",
+        "materials": [
+          "Light white oak",
+          "Walnut",
+          "Bamboo",
+          "Linen",
+          "Wabi-sabi ceramic",
+          "Jute",
+          "Paper cord"
+        ],
+        "recommendedColors": [
+          "#E8E3D9",
+          "#C5BAA8",
+          "#8B8579",
+          "#3E3B36",
+          "#5C6B5E"
+        ],
+        "signaturePieces": [
+          "Low-platform sofa",
+          "Paper lantern pendant light",
+          "Slatted oak sideboard",
+          "Minimalist ceramic vase",
+          "Low round ash coffee table"
+        ]
+      }
+    },
+    {
+      "id": "style_scandinavian",
+      "type": "style",
+      "title": "Scandinavian Interior Design Style",
+      "content": "Scandinavian: Nordic interior design emphasizing hygge coziness, luminous light maximization, clean functionality, and organic textures.. Key Elements: Bright airy spaces, Light wood tones, Plush wool and shearling throws, Functional storage, Simple geometric silhouettes. Materials: Bleached pine, Birch, Ash, Wool, Boucle, Cotton canvas, Matte ceramic. Signature Pieces: Tapered leg sofa in oat grey, Nesting round coffee tables, Wishbone dining chairs, Arched brass floor lamp, High-pile wool Moroccan-style rug.",
+      "metadata": {
+        "styleId": "scandinavian",
+        "styleName": "Scandinavian",
+        "materials": [
+          "Bleached pine",
+          "Birch",
+          "Ash",
+          "Wool",
+          "Boucle",
+          "Cotton canvas",
+          "Matte ceramic"
+        ],
+        "recommendedColors": [
+          "#F8F9FA",
+          "#E9ECEF",
+          "#DEE2E6",
+          "#6C757D",
+          "#495057",
+          "#A5A58D"
+        ],
+        "signaturePieces": [
+          "Tapered leg sofa in oat grey",
+          "Nesting round coffee tables",
+          "Wishbone dining chairs",
+          "Arched brass floor lamp",
+          "High-pile wool Moroccan-style rug"
+        ]
+      }
+    },
+    {
+      "id": "style_mid_century_modern",
+      "type": "style",
+      "title": "Mid-Century Modern Interior Design Style",
+      "content": "Mid-Century Modern: Iconic 1950s-1960s aesthetic defined by sleek architectural curves, organic shapes, rich warm woods, and statement lighting.. Key Elements: Tapered peg legs, Walnut wood tones, Organic sculptural curves, Statement brass sputnik lighting, Bold geometric accents. Materials: American walnut, Teak, Brass, Molded plywood, Top-grain leather, Velvet. Signature Pieces: Tufted walnut-frame leather sofa, Eames-style lounge chair, Kidney-shaped coffee table, Brass multi-arm chandelier, Geometric flat-weave wool rug.",
+      "metadata": {
+        "styleId": "mid_century_modern",
+        "styleName": "Mid-Century Modern",
+        "materials": [
+          "American walnut",
+          "Teak",
+          "Brass",
+          "Molded plywood",
+          "Top-grain leather",
+          "Velvet"
+        ],
+        "recommendedColors": [
+          "#FAF0CA",
+          "#0D3B66",
+          "#F4D35E",
+          "#EE964B",
+          "#F95738",
+          "#2E4057"
+        ],
+        "signaturePieces": [
+          "Tufted walnut-frame leather sofa",
+          "Eames-style lounge chair",
+          "Kidney-shaped coffee table",
+          "Brass multi-arm chandelier",
+          "Geometric flat-weave wool rug"
+        ]
+      }
+    },
+    {
+      "id": "style_modern_farmhouse",
+      "type": "style",
+      "title": "Modern Farmhouse Interior Design Style",
+      "content": "Modern Farmhouse: A comfortable blend of rustic countryside warmth, reclaimed timbers, and crisp contemporary contrast.. Key Elements: Shiplap accents, Black iron hardware, Reclaimed wood surfaces, Neutral slipcovered seating, Woven basket storage. Materials: Distressed oak, Matte black steel, Washed linen, Galvanized metal, Jute, Ceramic subway tile. Signature Pieces: Slipcovered Belgian linen sofa, Trestle reclaimed wood dining table, Matte black lantern pendant, Jute area rug, Sliding barn-door media console.",
+      "metadata": {
+        "styleId": "modern_farmhouse",
+        "styleName": "Modern Farmhouse",
+        "materials": [
+          "Distressed oak",
+          "Matte black steel",
+          "Washed linen",
+          "Galvanized metal",
+          "Jute",
+          "Ceramic subway tile"
+        ],
+        "recommendedColors": [
+          "#FFFFFF",
+          "#F3F3F3",
+          "#D8D3CD",
+          "#7F7B74",
+          "#2B2B2B",
+          "#6E7565"
+        ],
+        "signaturePieces": [
+          "Slipcovered Belgian linen sofa",
+          "Trestle reclaimed wood dining table",
+          "Matte black lantern pendant",
+          "Jute area rug",
+          "Sliding barn-door media console"
+        ]
+      }
+    },
+    {
+      "id": "style_industrial",
+      "type": "style",
+      "title": "Industrial Interior Design Style",
+      "content": "Industrial: Urban loft aesthetic showcasing raw architectural bones, exposed brick, distressed metals, and utilitarian character.. Key Elements: Exposed brick and concrete, Piping and ductwork, Dark metal framing, Aged vintage leather, Edison bulb fixtures. Materials: Distressed leather, Reclaimed iron, Cast iron, Concrete, Reclaimed pine, Wire glass. Signature Pieces: Cognac leather Chesterfield sofa, Factory cart iron coffee table, Steel frame bookcase, Pulley pendant light, Distressed vintage overdyed rug.",
+      "metadata": {
+        "styleId": "industrial",
+        "styleName": "Industrial",
+        "materials": [
+          "Distressed leather",
+          "Reclaimed iron",
+          "Cast iron",
+          "Concrete",
+          "Reclaimed pine",
+          "Wire glass"
+        ],
+        "recommendedColors": [
+          "#343A40",
+          "#495057",
+          "#6C757D",
+          "#8D5B4C",
+          "#A0522D",
+          "#C29B7F"
+        ],
+        "signaturePieces": [
+          "Cognac leather Chesterfield sofa",
+          "Factory cart iron coffee table",
+          "Steel frame bookcase",
+          "Pulley pendant light",
+          "Distressed vintage overdyed rug"
+        ]
+      }
+    },
+    {
+      "id": "style_bohemian",
+      "type": "style",
+      "title": "Bohemian (Boho Modern) Interior Design Style",
+      "content": "Bohemian (Boho Modern): Free-spirited, layered interior filled with lush indoor greenery, globally inspired textiles, rattan, and artisanal craft.. Key Elements: Layered textiles, Macrame and fringe, Abundant houseplants, Rattan and cane furniture, Warm terracotta tones. Materials: Rattan, Wicker, Cane, Jute, Terracotta, Vintage kilim, Bamboo. Signature Pieces: Rattan peacock accent chair, Layered kilim rugs, Macrame plant hangers, Live-edge wood coffee table, Moroccan leather poufs.",
+      "metadata": {
+        "styleId": "bohemian",
+        "styleName": "Bohemian (Boho Modern)",
+        "materials": [
+          "Rattan",
+          "Wicker",
+          "Cane",
+          "Jute",
+          "Terracotta",
+          "Vintage kilim",
+          "Bamboo"
+        ],
+        "recommendedColors": [
+          "#E07A5F",
+          "#3D405B",
+          "#81B29A",
+          "#F2CC8F",
+          "#F4F1DE",
+          "#D4A373"
+        ],
+        "signaturePieces": [
+          "Rattan peacock accent chair",
+          "Layered kilim rugs",
+          "Macrame plant hangers",
+          "Live-edge wood coffee table",
+          "Moroccan leather poufs"
+        ]
+      }
+    },
+    {
+      "id": "style_minimalist",
+      "type": "style",
+      "title": "Minimalist Interior Design Style",
+      "content": "Minimalist: Extreme intentionality, uncluttered sightlines, high-quality materiality, and subtle textural contrast.. Key Elements: Zero clutter, Concealed storage, Monochromatic palettes, Sculptural focal points, Maximum negative space. Materials: Travertine, Polished microcement, Matte lacquered MDF, Boucle, Brushed stainless steel. Signature Pieces: Floating media unit, Travertine stone plinth coffee table, Minimalist flush-mount linear LED, Seamless tailored sectional, Sculptural off-white ceramic urn.",
+      "metadata": {
+        "styleId": "minimalist",
+        "styleName": "Minimalist",
+        "materials": [
+          "Travertine",
+          "Polished microcement",
+          "Matte lacquered MDF",
+          "Boucle",
+          "Brushed stainless steel"
+        ],
+        "recommendedColors": [
+          "#FFFFFF",
+          "#F5F5F5",
+          "#E5E5E5",
+          "#CCCCCC",
+          "#222222"
+        ],
+        "signaturePieces": [
+          "Floating media unit",
+          "Travertine stone plinth coffee table",
+          "Minimalist flush-mount linear LED",
+          "Seamless tailored sectional",
+          "Sculptural off-white ceramic urn"
+        ]
+      }
+    },
+    {
+      "id": "style_coastal",
+      "type": "style",
+      "title": "Coastal Modern Interior Design Style",
+      "content": "Coastal Modern: Breezy, sun-drenched style drawing inspiration from coastal shorelines with natural woven fibers, soft blues, and crisp linens.. Key Elements: Abundant natural light, Airy white curtains, Seagrass and abaca textures, Weathered driftwood tones, Soft ocean hues. Materials: Bleached oak, Linen, Seagrass, Capiz shell, Rope, Ceramic. Signature Pieces: Slipcovered off-white sectional, Woven abaca coffee table, Beaded coastal chandelier, Driftwood console table, Blue-striped linen throw pillows.",
+      "metadata": {
+        "styleId": "coastal",
+        "styleName": "Coastal Modern",
+        "materials": [
+          "Bleached oak",
+          "Linen",
+          "Seagrass",
+          "Capiz shell",
+          "Rope",
+          "Ceramic"
+        ],
+        "recommendedColors": [
+          "#FFFFFF",
+          "#E8F0F2",
+          "#B8D8D8",
+          "#7A9E9F",
+          "#4F6367",
+          "#EE6C4D"
+        ],
+        "signaturePieces": [
+          "Slipcovered off-white sectional",
+          "Woven abaca coffee table",
+          "Beaded coastal chandelier",
+          "Driftwood console table",
+          "Blue-striped linen throw pillows"
+        ]
+      }
+    },
+    {
+      "id": "color_rule_1",
+      "type": "color_rule",
+      "title": "60-30-10 Proportional Color Harmony",
+      "content": "Color Rule: 60-30-10 Proportional Color Harmony. Category: color_theory. Guideline: Divide room colors into 60% dominant base (walls, large rugs, primary sofa), 30% secondary supporting color (accent chairs, curtains, secondary furniture), and 10% accent color (cushions, artwork, decorative ceramics, hardware).",
+      "metadata": {
+        "category": "color_theory",
+        "ruleName": "60-30-10 Proportional Color Harmony"
+      }
+    },
+    {
+      "id": "color_rule_2",
+      "type": "color_rule",
+      "title": "Warm vs Cool Undertone Cohesion",
+      "content": "Color Rule: Warm vs Cool Undertone Cohesion. Category: color_harmony. Guideline: Avoid clashing undertones by pairing warm whites (cream, ivory, alabaster) with warm woods (oak, walnut, brass) or cool whites (pure white, crisp grey) with cool metals (chrome, black steel, slate).",
+      "metadata": {
+        "category": "color_harmony",
+        "ruleName": "Warm vs Cool Undertone Cohesion"
+      }
+    },
+    {
+      "id": "color_rule_3",
+      "type": "color_rule",
+      "title": "Biophilic Natural Anchor",
+      "content": "Color Rule: Biophilic Natural Anchor. Category: color_harmony. Guideline: Introducing muted botanical greens (sage, eucalyptus, forest) anchors neutral interiors and reduces visual fatigue while harmonizing with light wood tones.",
+      "metadata": {
+        "category": "color_harmony",
+        "ruleName": "Biophilic Natural Anchor"
+      }
+    },
+    {
+      "id": "spatial_rule_1",
+      "type": "spatial_rule",
+      "title": "Rug Sizing & Seating Anchor",
+      "content": "Spatial Rule: Rug Sizing & Seating Anchor. Room Type: living_room. Category: living_room. Rule: In living rooms, the area rug should be large enough that at least the front two legs of all main seating pieces (sofas and armchairs) sit firmly on the rug. Standard sizes: 8x10 ft or 9x12 ft. Never float a tiny 'postage stamp' rug in the middle.",
+      "metadata": {
+        "roomType": "living_room",
+        "category": "living_room",
+        "ruleName": "Rug Sizing & Seating Anchor"
+      }
+    },
+    {
+      "id": "spatial_rule_2",
+      "type": "spatial_rule",
+      "title": "Sofa to Coffee Table Ergonomics",
+      "content": "Spatial Rule: Sofa to Coffee Table Ergonomics. Room Type: living_room. Category: living_room. Rule: Maintain 14 to 18 inches (35 to 45 cm) of clearance between the front edge of the sofa and the coffee table. This provides comfortable legroom while keeping drinks and books within easy arm's reach.",
+      "metadata": {
+        "roomType": "living_room",
+        "category": "living_room",
+        "ruleName": "Sofa to Coffee Table Ergonomics"
+      }
+    },
+    {
+      "id": "spatial_rule_3",
+      "type": "spatial_rule",
+      "title": "Coffee Table Height Ratio",
+      "content": "Spatial Rule: Coffee Table Height Ratio. Room Type: living_room. Category: living_room. Rule: The top of the coffee table should be 1 to 2 inches lower than the seat cushion height of the adjacent sofa or sectional, usually between 16 to 18 inches high.",
+      "metadata": {
+        "roomType": "living_room",
+        "category": "living_room",
+        "ruleName": "Coffee Table Height Ratio"
+      }
+    },
+    {
+      "id": "spatial_rule_4",
+      "type": "spatial_rule",
+      "title": "Three-Tier Lighting Strategy",
+      "content": "Spatial Rule: Three-Tier Lighting Strategy. Room Type: all. Category: lighting. Rule: Every well-designed room must include 3 distinct layers of light: 1. Ambient lighting (central flush mount, chandelier, or cove lighting for general brightness); 2. Task lighting (desk lamps, floor reading lamps beside armchairs, bedside sconces); 3. Accent lighting (picture lights over art, LED strip backlighting on shelving, uplights).",
+      "metadata": {
+        "roomType": "all",
+        "category": "lighting",
+        "ruleName": "Three-Tier Lighting Strategy"
+      }
+    },
+    {
+      "id": "spatial_rule_5",
+      "type": "spatial_rule",
+      "title": "Wall Art Eye-Level Standard",
+      "content": "Spatial Rule: Wall Art Eye-Level Standard. Room Type: all. Category: decor. Rule: The center point of single wall art pieces or gallery wall arrangements should hang at 57 to 60 inches (145-152 cm) from the finished floor (the average human standing eye-level). When hanging above a sofa or console, leave 8 to 10 inches between the top of the furniture and the bottom of the frame.",
+      "metadata": {
+        "roomType": "all",
+        "category": "decor",
+        "ruleName": "Wall Art Eye-Level Standard"
+      }
+    },
+    {
+      "id": "spatial_rule_6",
+      "type": "spatial_rule",
+      "title": "Curtain High-and-Wide Principle",
+      "content": "Spatial Rule: Curtain High-and-Wide Principle. Room Type: all. Category: window_treatments. Rule: Mount curtain rods 4 to 6 inches above the window frame (or directly below the crown molding/ceiling) and extend the rod 8 to 12 inches wider than the window frame on each side. This tricks the eye into perceiving ceilings as higher and windows as larger, while letting maximum natural light enter.",
+      "metadata": {
+        "roomType": "all",
+        "category": "window_treatments",
+        "ruleName": "Curtain High-and-Wide Principle"
+      }
+    },
+    {
+      "id": "spatial_rule_7",
+      "type": "spatial_rule",
+      "title": "Main Circulation Pathway Clearance",
+      "content": "Spatial Rule: Main Circulation Pathway Clearance. Room Type: all. Category: spatial_layout. Rule: Primary traffic pathways through the room must have a minimum unobstructed walkway clearance of 30 to 36 inches (76 to 91 cm). Secondary pathways between minor furniture pieces require at least 24 inches.",
+      "metadata": {
+        "roomType": "all",
+        "category": "spatial_layout",
+        "ruleName": "Main Circulation Pathway Clearance"
+      }
+    },
+    {
+      "id": "spatial_rule_8",
+      "type": "spatial_rule",
+      "title": "TV Viewing Distance & Height",
+      "content": "Spatial Rule: TV Viewing Distance & Height. Room Type: living_room. Category: entertainment. Rule: The vertical center of a wall-mounted TV screen should sit at eye level from the seated viewing position (typically 42 inches from the floor). Viewing distance should equal approximately 1.2 to 1.5 times the diagonal screen size.",
+      "metadata": {
+        "roomType": "living_room",
+        "category": "entertainment",
+        "ruleName": "TV Viewing Distance & Height"
+      }
+    },
+    {
+      "id": "spatial_rule_9",
+      "type": "spatial_rule",
+      "title": "Bedside Nightstand Proportions",
+      "content": "Spatial Rule: Bedside Nightstand Proportions. Room Type: bedroom. Category: bedroom. Rule: Nightstand height should be within 2 inches of the top of the mattress (level or slightly higher). Nightstand width should be proportional to the bed: 20-24 inches for Queen beds, 26-32 inches for King beds.",
+      "metadata": {
+        "roomType": "bedroom",
+        "category": "bedroom",
+        "ruleName": "Bedside Nightstand Proportions"
+      }
+    },
+    {
+      "id": "spatial_rule_10",
+      "type": "spatial_rule",
+      "title": "Dining Table Chandelier Drop",
+      "content": "Spatial Rule: Dining Table Chandelier Drop. Room Type: dining_room. Category: dining_room. Rule: The bottom of a dining room chandelier or pendant fixture should hang 30 to 36 inches above the surface of the dining table.",
+      "metadata": {
+        "roomType": "dining_room",
+        "category": "dining_room",
+        "ruleName": "Dining Table Chandelier Drop"
+      }
+    },
+    {
+      "id": "safety_rule_1",
+      "type": "safety_rule",
+      "title": "Toddler & Child Safety Furniture Standards",
+      "content": "Safety & Occupant Rule: Toddler & Child Safety Furniture Standards. Occupant Type: children. Guideline: For homes with toddlers or young children: 1. Avoid sharp-cornered rectangular glass coffee tables; select round, oval, or upholstered storage ottomans; 2. All heavy bookcases, media units, and dressers must be anchored to wall studs; 3. Choose stain-resistant performance fabrics (Crypton, Revolution, Sunbrella) and washable slipcovers.",
+      "metadata": {
+        "occupant": "children",
+        "ruleName": "Toddler & Child Safety Furniture Standards"
+      }
+    },
+    {
+      "id": "safety_rule_2",
+      "type": "safety_rule",
+      "title": "Pet-Friendly Durability Standards",
+      "content": "Safety & Occupant Rule: Pet-Friendly Durability Standards. Occupant Type: pets. Guideline: For homes with dogs or cats: 1. Avoid loose loop-pile or open-weave rugs that snag claws; choose low-pile flatweave, indoor/outdoor polypropylene, or machine-washable rugs; 2. Select tight-weave microfiber, distressed leather, or high rub-count performance velvet that resists pet hair and scratching; 3. Ensure indoor plants are strictly non-toxic (safe: Calathea, Parlor Palm, Spider Plant, Money Tree; avoid: Monsteras, Lilies, Philodendrons).",
+      "metadata": {
+        "occupant": "pets",
+        "ruleName": "Pet-Friendly Durability Standards"
+      }
+    }
+  ]
+}

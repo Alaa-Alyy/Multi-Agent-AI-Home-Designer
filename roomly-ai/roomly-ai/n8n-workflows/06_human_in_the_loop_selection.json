@@ -1,0 +1,59 @@
+{
+  "name": "06_Human_in_the_Loop_Selection",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "roomly/hitl/select",
+        "options": {}
+      },
+      "name": "HITL Selection Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "hitl_webhook_node"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/hitl/confirm",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId }}"
+            },
+            {
+              "name": "selectedProducts",
+              "value": "={{ $json.body.selectedProducts }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Post User Selection to Roomly Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "hitl_post_node"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Acknowledge Selection Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [560, 300],
+      "id": "hitl_respond_node"
+    }
+  ],
+  "connections": {
+    "HITL Selection Webhook": {
+      "main": [[{ "node": "Post User Selection to Roomly Engine", "type": "main", "index": 0 }]]
+    },
+    "Post User Selection to Roomly Engine": {
+      "main": [[{ "node": "Acknowledge Selection Webhook", "type": "main", "index": 0 }]]
+    }
+  }
+}

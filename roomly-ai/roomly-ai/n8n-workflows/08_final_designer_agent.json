@@ -1,0 +1,51 @@
+{
+  "name": "08_Final_Designer_Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Final Designer Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "final_designer_trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/final-designer",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Synthesize Complete Redesign Package",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "final_designer_http_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pkg = $input.first().json;\nreturn [{\n  json: {\n    sessionId: pkg.sessionId,\n    summary: pkg.summary,\n    changes: pkg.changes,\n    products: pkg.products,\n    budget: pkg.budget,\n    finalImage: pkg.finalImage,\n    completedAt: pkg.completedAt\n  }\n}];"
+      },
+      "name": "Format Final Package Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "id": "format_final_pkg_node"
+    }
+  ],
+  "connections": {
+    "Final Designer Trigger": {
+      "main": [[{ "node": "Synthesize Complete Redesign Package", "type": "main", "index": 0 }]]
+    },
+    "Synthesize Complete Redesign Package": {
+      "main": [[{ "node": "Format Final Package Output", "type": "main", "index": 0 }]]
+    }
+  }
+}

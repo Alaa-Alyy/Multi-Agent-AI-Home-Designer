@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roomly AI — AI Room Redecoration Platform</title>
+  <meta name="description" content="AI-native interior design copilot: Vision room analysis, RAG design knowledge, deterministic budget allocation, real product search, HITL selection, explicit placement planning, and realistic DALL-E 3 image generation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- TOP HEADER -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="logo-icon">✨</div>
+        <div class="brand-text">
+          <h1><span data-i18n="appTitle">Roomly</span><span data-i18n="appSubtitle">AI</span></h1>
+          <span class="badge-n8n" data-i18n="badgeN8N">n8n Native Architecture</span>
+        </div>
+      </div>
+      
+      <div class="header-controls">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="systemStatus" data-i18n="engineReady">Engine Ready</span>
+        </div>
+        <div class="credentials-badge" id="credentialsBadge">
+          <span class="cred-pill" id="openAiCred" data-i18n="openAiReady">OpenAI: Ready</span>
+          <span class="cred-pill" id="searchCred" data-i18n="searchCredReady">Search: Credential-Ready</span>
+        </div>
+
+        <!-- THEME & LANGUAGE CONTROLS -->
+        <button type="button" class="control-btn" id="btnThemeToggle">
+          <span id="themeIcon">☀️</span> <span id="themeLabel">Light</span>
+        </button>
+        <button type="button" class="control-btn" id="btnLangToggle">
+          <span id="langIcon">🌐</span> <span id="langLabel">العربية</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PIPELINE STEP TRACKER -->
+    <nav class="pipeline-tracker" id="pipelineTracker">
+      <div class="step-node active" data-step="1">
+        <div class="node-circle">1</div>
+        <div class="node-label" data-i18n="step1">Intake & Chat</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="2">
+        <div class="node-circle">2</div>
+        <div class="node-label" data-i18n="step2">Vision Agent</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="3">
+        <div class="node-circle">3</div>
+        <div class="node-label" data-i18n="step3">RAG Knowledge</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="4">
+        <div class="node-circle">4</div>
+        <div class="node-label" data-i18n="step4">Budget Agent</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="5">
+        <div class="node-circle">5</div>
+        <div class="node-label" data-i18n="step5">Search & Ranking</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node hitl-step" data-step="6">
+        <div class="node-circle">6</div>
+        <div class="node-label" data-i18n="step6">HITL Selection</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="7">
+        <div class="node-circle">7</div>
+        <div class="node-label" data-i18n="step7">Image Gen (AI)</div>
+      </div>
+      <div class="connector"></div>
+      <div class="step-node" data-step="8">
+        <div class="node-circle">8</div>
+        <div class="node-label" data-i18n="step8">Final Redesign</div>
+      </div>
+    </nav>
+
+    <!-- MAIN INTERACTIVE LAYOUT -->
+    <main class="main-content">
+      <!-- LEFT PANEL: Guided Intake & Preferences -->
+      <section class="side-panel">
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3 data-i18n="uploadCardTitle">📷 Upload Room Photo</h3>
+          </div>
+          <div class="card-body">
+            <div class="upload-dropzone" id="dropzone">
+              <input type="file" id="roomImageInput" accept="image/*" style="display:none;">
+              <div class="upload-prompt" id="uploadPrompt">
+                <div class="upload-icon">📁</div>
+                <p><strong data-i18n="uploadPromptText">Click to browse or drag & drop room photo</strong></p>
+                <span class="hint" data-i18n="uploadHint">Supports JPG, PNG, WEBP up to 25MB</span>
+              </div>
+              <div class="preview-container" id="previewContainer" style="display:none;">
+                <img id="imagePreview" src="" alt="Room Preview">
+                <button type="button" class="btn-remove" id="btnRemoveImage" data-i18n="btnChangePhoto">✕ Change</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3 data-i18n="prefCardTitle">🎯 Design Preferences</h3>
+          </div>
+          <div class="card-body">
+            <form id="preferencesForm">
+              <div class="form-group">
+                <label for="prefRoomType" data-i18n="roomTypeLabel">Room Type</label>
+                <select id="prefRoomType" class="form-select">
+                  <option value="bedroom" selected data-i18n="roomTypeBedroom">Bedroom</option>
+                  <option value="living_room" data-i18n="roomTypeLiving">Living Room</option>
+                  <option value="home_office" data-i18n="roomTypeOffice">Home Office / Workspace</option>
+                  <option value="dining_room" data-i18n="roomTypeDining">Dining Room</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="prefStyle" data-i18n="targetStyleLabel">Target Style</label>
+                <select id="prefStyle" class="form-select">
+                  <option value="modern_farmhouse" selected data-i18n="styleFarmhouse">Modern Farmhouse (Rustic & Black Iron)</option>
+                  <option value="japandi" data-i18n="styleJapandi">Japandi (Warm Minimal + Wabi-Sabi)</option>
+                  <option value="scandinavian" data-i18n="styleScandi">Scandinavian (Light, Functional Hygge)</option>
+                  <option value="mid_century_modern" data-i18n="styleMcm">Mid-Century Modern (Walnut & Curves)</option>
+                  <option value="minimalist" data-i18n="styleMinimalist">Minimalist (Clean Architectural Lines)</option>
+                  <option value="industrial" data-i18n="styleIndustrial">Industrial (Exposed Brick & Iron)</option>
+                  <option value="bohemian" data-i18n="styleBohemian">Bohemian (Layered Kilim & Greenery)</option>
+                  <option value="coastal" data-i18n="styleCoastal">Coastal Modern (Airy Whites & Teal)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="prefBudget" data-i18n="budgetLabel">Total Redecoration Budget ($USD)</label>
+                <div class="budget-input-wrapper">
+                  <span class="currency-symbol">$</span>
+                  <input type="number" id="prefBudget" class="form-input" value="4500" min="500" max="100000" step="100">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label data-i18n="safetyLabel">Household & Safety Considerations</label>
+                <div class="pill-checkbox-group">
+                  <label class="pill-check"><input type="checkbox" id="chkChildren" value="children"> <span data-i18n="optKids">👶 Toddler / Kids</span></label>
+                  <label class="pill-check"><input type="checkbox" id="chkPets" value="pets"> <span data-i18n="optPets">🐾 Dogs / Cats</span></label>
+                  <label class="pill-check"><input type="checkbox" id="chkEco" value="eco"> <span data-i18n="optEco">🌿 Sustainable Woods</span></label>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary btn-block" id="btnStartPipeline">
+                <span data-i18n="btnRunPipeline">🚀 Run Full AI Redesign Pipeline</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Chat / Session Log -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3 data-i18n="chatCardTitle">💬 Roomly Copilot Chat</h3>
+          </div>
+          <div class="card-body">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-msg assistant">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-bubble" data-i18n="chatWelcome">
+                  Welcome to Roomly AI! Upload your room photo above and set your target style to start the autonomous interior redesign pipeline.
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" id="chatInput" class="form-input" placeholder="Type a message or adjustment..." data-i18n-placeholder="chatPlaceholder">
+              <button type="button" class="btn btn-secondary" id="btnSendChat" data-i18n="btnSend">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL: Live Autonomous Pipeline Execution View -->
+      <section class="main-panel">
+        <!-- 1. VISION AGENT CARD -->
+        <div class="stage-card card glass-card" id="stageVision">
+          <div class="stage-header">
+            <span class="stage-tag">Step 1</span>
+            <h2 data-i18n="stageVisionTitle">👁️ Vision Agent — Architectural Room Analysis</h2>
+            <span class="stage-status" id="statusVision" data-i18n="statusWaitingPhoto">Waiting for photo</span>
+          </div>
+          <div class="stage-content" id="contentVision">
+            <div class="empty-state" data-i18n="emptyVision">Upload a room photo to trigger Vision Agent spatial decomposition.</div>
+          </div>
+        </div>
+
+        <!-- 2. RAG KNOWLEDGE BASE CARD -->
+        <div class="stage-card card glass-card" id="stageRAG">
+          <div class="stage-header">
+            <span class="stage-tag">Step 2</span>
+            <h2 data-i18n="stageRAGTitle">📚 RAG Knowledge Retrieval — Design & Safety Rules</h2>
+            <span class="stage-status" id="statusRAG" data-i18n="statusIdle">Idle</span>
+          </div>
+          <div class="stage-content" id="contentRAG">
+            <div class="empty-state" data-i18n="emptyRAG">RAG lookup will query design vectors once room analysis is complete.</div>
+          </div>
+        </div>
+
+        <!-- 3. BUDGET ALLOCATION CARD -->
+        <div class="stage-card card glass-card" id="stageBudget">
+          <div class="stage-header">
+            <span class="stage-tag">Step 3</span>
+            <h2 data-i18n="stageBudgetTitle">💰 Budget Agent — Deterministic Allocation</h2>
+            <span class="stage-status" id="statusBudget" data-i18n="statusIdle">Idle</span>
+          </div>
+          <div class="stage-content" id="contentBudget">
+            <div class="empty-state" data-i18n="emptyBudget">Budget Agent will partition funds across room categories.</div>
+          </div>
+        </div>
+
+        <!-- 4. SEARCH & PRODUCT RANKING CARD -->
+        <div class="stage-card card glass-card" id="stageSearch">
+          <div class="stage-header">
+            <span class="stage-tag">Step 4</span>
+            <h2 data-i18n="stageSearchTitle">🔎 Search & Ranking Agent — Provider-Agnostic Engine</h2>
+            <span class="stage-status" id="statusSearch" data-i18n="statusIdle">Idle</span>
+          </div>
+          <div class="stage-content" id="contentSearch">
+            <div class="empty-state" data-i18n="emptySearch">Product search will execute targeting allocated category prices.</div>
+          </div>
+        </div>
+
+        <!-- 5. HUMAN-IN-THE-LOOP (HITL) SELECTION MODAL / STAGE -->
+        <div class="stage-card card glass-card hitl-highlight" id="stageHITL">
+          <div class="stage-header">
+            <span class="stage-tag hitl-badge">MANDATORY PAUSE</span>
+            <h2 data-i18n="stageHITLTitle">✋ Human-in-the-Loop Product Selection</h2>
+            <span class="stage-status" id="statusHITL" data-i18n="statusWaiting">Waiting</span>
+          </div>
+          <div class="stage-content" id="contentHITL">
+            <div class="empty-state" data-i18n="emptyHITL">The workflow pauses here so you can review, select, and customize recommended products.</div>
+          </div>
+        </div>
+
+        <!-- 6. IMAGE GENERATION (DALL-E 3) CARD -->
+        <div class="stage-card card glass-card" id="stageImageGen">
+          <div class="stage-header">
+            <span class="stage-tag">Step 6</span>
+            <h2 data-i18n="stageImageGenTitle">🎨 Image Generation Agent — Realistic AFTER Image</h2>
+            <span class="stage-status" id="statusImageGen" data-i18n="statusIdle">Idle</span>
+          </div>
+          <div class="stage-content" id="contentImageGen">
+            <div class="empty-state" data-i18n="emptyImageGen">OpenAI DALL-E 3 image generation will run after your product confirmation.</div>
+          </div>
+        </div>
+
+        <!-- 7. FINAL DESIGNER PACKAGE -->
+        <div class="stage-card card glass-card" id="stageFinal">
+          <div class="stage-header">
+            <span class="stage-tag">Step 7</span>
+            <h2 data-i18n="stageFinalTitle">🏆 Final Designer — Complete Redesign Package</h2>
+            <span class="stage-status" id="statusFinal" data-i18n="statusIdle">Idle</span>
+          </div>
+          <div class="stage-content" id="contentFinal">
+            <div class="empty-state" data-i18n="emptyFinal">Final design summary, itemized costs, and before/after comparisons will appear here.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

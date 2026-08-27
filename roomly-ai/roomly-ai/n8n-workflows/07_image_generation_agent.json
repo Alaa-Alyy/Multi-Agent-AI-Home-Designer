@@ -1,0 +1,51 @@
+{
+  "name": "07_Image_Generation_Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Image Gen Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "image_gen_trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/image-gen",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Generate Realistic AFTER Image (OpenAI DALL-E 3)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "image_gen_http_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nreturn [{\n  json: {\n    status: input.status,\n    imageUrl: input.imageUrl,\n    prompt: input.prompt,\n    generatedAt: input.generatedAt\n  }\n}];"
+      },
+      "name": "Format Image Gen Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300],
+      "id": "format_image_gen_node"
+    }
+  ],
+  "connections": {
+    "Image Gen Trigger": {
+      "main": [[{ "node": "Generate Realistic AFTER Image (OpenAI DALL-E 3)", "type": "main", "index": 0 }]]
+    },
+    "Generate Realistic AFTER Image (OpenAI DALL-E 3)": {
+      "main": [[{ "node": "Format Image Gen Output", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "name": "05_Product_Search_and_Ranking_Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Search & Rank Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "search_rank_trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/search",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Execute Product Search (Multi-Provider)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [340, 300],
+      "id": "exec_search_node"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/nodes/rank",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Score & Rank Products by Compatibility",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [580, 300],
+      "id": "exec_rank_node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nreturn [{\n  json: {\n    totalRanked: input.totalRanked,\n    rankedByCategory: input.rankedByCategory,\n    recommendedSet: input.recommendedSet\n  }\n}];"
+      },
+      "name": "Format Search & Ranking Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300],
+      "id": "format_search_rank_node"
+    }
+  ],
+  "connections": {
+    "Search & Rank Trigger": {
+      "main": [[{ "node": "Execute Product Search (Multi-Provider)", "type": "main", "index": 0 }]]
+    },
+    "Execute Product Search (Multi-Provider)": {
+      "main": [[{ "node": "Score & Rank Products by Compatibility", "type": "main", "index": 0 }]]
+    },
+    "Score & Rank Products by Compatibility": {
+      "main": [[{ "node": "Format Search & Ranking Output", "type": "main", "index": 0 }]]
+    }
+  }
+}
