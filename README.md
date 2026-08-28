@@ -654,23 +654,5 @@ This project was developed as a **Graduation Project** focused on applying multi
 
 > **From Room Photo → AI Design → Real Products → Budget Validation → Purchase-Ready Redesign**
 
----
-
-# 👥 Team
-
-Add your team members here:
-
-| Name        | Role                    |
-| ----------- | ----------------------- |
-| Your Name   | AI / Multi-Agent System |
-| Team Member | ...                     |
-| Team Member | ...                     |
-| Team Member | ...                     |
-
----
-
-# 📜 License
-
-This project is licensed under the MIT License.
 
 See the `LICENSE` file for details.
