@@ -2,15 +2,10 @@ services:
   - type: web
     name: roomly-ai
     runtime: docker
+    plan: free
     rootDir: roomly-ai/roomly-ai
     healthCheckPath: /api/health
-    disk:
-      name: roomly-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
-      - key: STORAGE_DIR
-        value: /var/data
       - key: OPENAI_API_KEY
         sync: false
       - key: SERPAPI_API_KEY
