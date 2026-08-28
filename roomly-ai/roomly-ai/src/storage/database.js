@@ -4,7 +4,9 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 class RoomlyDatabase {
-  constructor(storageDir = path.join(__dirname, '../../data')) {
+  constructor(storageDir = process.env.STORAGE_DIR
+    ? path.resolve(process.env.STORAGE_DIR)
+    : path.join(__dirname, '../../data')) {
     this.storageDir = storageDir;
     this.dbFilePath = path.join(this.storageDir, 'roomly_db.json');
     this.uploadsDir = path.join(this.storageDir, 'uploads');

@@ -111,6 +111,19 @@ npm run test-pipeline
 
 ---
 
+## 🚀 Deploy on Render
+
+This repository includes a Render Blueprint at the repository root. It builds the app from `roomly-ai/roomly-ai`, runs it in Docker, and mounts persistent storage at `/var/data` for session data and uploaded images.
+
+1. Commit and push the deployment files to GitHub. Do not commit `.env` or the `data/` runtime directory.
+2. In Render, choose **New → Blueprint**, connect this repository, and select a paid web-service plan (persistent disks are not available on Render's free web services).
+3. Enter `OPENAI_API_KEY` when Render prompts for secret values. Add a product-search key only if you want live retailer results.
+4. Deploy and verify `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"`.
+
+The app works without third-party keys using its built-in fallback analysis and product data, but OpenAI-powered room analysis and image generation require `OPENAI_API_KEY`.
+
+---
+
 ## 🔌 n8n Workflow Integration
 
 To use with an existing n8n instance:

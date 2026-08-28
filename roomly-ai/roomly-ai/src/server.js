@@ -22,6 +22,9 @@ const priceWatcher = require('./agents/priceWatcher');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const storageDir = process.env.STORAGE_DIR
+  ? path.resolve(process.env.STORAGE_DIR)
+  : path.join(__dirname, '../data');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -29,13 +32,13 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static asset delivery
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/data/uploads', express.static(path.join(__dirname, '../data/uploads')));
-app.use('/data/generated', express.static(path.join(__dirname, '../data/generated')));
+app.use('/data/uploads', express.static(path.join(storageDir, 'uploads')));
+app.use('/data/generated', express.static(path.join(storageDir, 'generated')));
 
 // File upload configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../data/uploads');
+    const uploadDir = path.join(storageDir, 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
