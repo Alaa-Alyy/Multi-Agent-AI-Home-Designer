@@ -6,7 +6,10 @@
       "name": "Image Gen Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [100, 300],
+      "position": [
+        100,
+        300
+      ],
       "id": "image_gen_trigger"
     },
     {
@@ -23,10 +26,13 @@
         },
         "options": {}
       },
-      "name": "Generate Realistic AFTER Image (OpenAI DALL-E 3)",
+      "name": "Furnish the user's room (FLUX.2 via Roomly API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [340, 300],
+      "position": [
+        340,
+        300
+      ],
       "id": "image_gen_http_node"
     },
     {
@@ -36,16 +42,35 @@
       "name": "Format Image Gen Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [560, 300],
+      "position": [
+        560,
+        300
+      ],
       "id": "format_image_gen_node"
     }
   ],
   "connections": {
     "Image Gen Trigger": {
-      "main": [[{ "node": "Generate Realistic AFTER Image (OpenAI DALL-E 3)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Furnish the user's room (FLUX.2 via Roomly API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Generate Realistic AFTER Image (OpenAI DALL-E 3)": {
-      "main": [[{ "node": "Format Image Gen Output", "type": "main", "index": 0 }]]
+    "Furnish the user's room (FLUX.2 via Roomly API)": {
+      "main": [
+        [
+          {
+            "node": "Format Image Gen Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   }
 }

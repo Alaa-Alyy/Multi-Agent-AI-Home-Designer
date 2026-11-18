@@ -2,16 +2,18 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/OpenAI-GPT--4o%20Vision-412991?style=flat-square&logo=openai&logoColor=white" />
-  <img src="https://img.shields.io/badge/DALL%C2%B7E%203-image%20generation-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/Cloudflare-Workers%20AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" />
+  <img src="https://img.shields.io/badge/FLUX.2-edits%20your%20room%20photo-111111?style=flat-square" />
+  <img src="https://img.shields.io/badge/shops-IKEA%20Egypt%20%7C%20Amazon.eg-0058A3?style=flat-square" />
+  <img src="https://img.shields.io/badge/prices-EGP-c08a5b?style=flat-square" />
   <img src="https://img.shields.io/badge/n8n-workflows-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
-  <img src="https://img.shields.io/badge/RAG-design%20knowledge-c08a5b?style=flat-square" />
+  <img src="https://img.shields.io/badge/RAG-bge--m3%20embeddings-6b7f6a?style=flat-square" />
   <img src="https://img.shields.io/badge/UI-English%20%7C%20%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-6b7f6a?style=flat-square" />
   <img src="https://img.shields.io/badge/deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=black" />
 </p>
 
 <p align="center">
-  <b>Upload a photo of your room, tell it your style and budget, and a team of AI agents plans a purchase-ready redesign.</b>
+  <b>Upload a photo of your room, chat about your style and budget, and a team of AI agents finds real products sold in Egypt and shows them in your own room.</b>
 </p>
 
 <p align="center">
@@ -30,6 +32,7 @@
 - [Tech stack](#-tech-stack)
 - [Project structure](#-project-structure)
 - [Getting started](#-getting-started)
+- [Free plan limits](#-free-plan-limits)
 - [Deploy on Render](#-deploy-on-render)
 - [n8n workflow integration](#-n8n-workflow-integration)
 - [Privacy & security](#-privacy--security)
@@ -42,13 +45,14 @@ Designing and renovating a room from a photo is hard. People struggle to picture
 
 **Roomly AI** combines:
 
-- 🧠 AI room understanding from a photo
-- 🎨 Personalized interior design guided by a design knowledge base
-- 💰 Deterministic, category-by-category budget allocation
-- 🛒 Product search and multi-criteria ranking
+- 🧠 AI room understanding from a photo (empty or with old furniture)
+- 💬 A conversation in Egyptian Arabic or English that asks one question at a time: room, what to keep, what to buy, style, colours, household, budget
+- 📚 Design rules retrieved by meaning (RAG) for your brief
+- 💰 A budget in Egyptian pounds split across the items you asked for
+- 🛒 Real products from **IKEA Egypt** and **Amazon.eg**, checked for price, relevance and stock, with every link opened before it is shown
 - 🙋 A mandatory **human-in-the-loop** step where you choose the products
-- 🖼️ A photorealistic redesign preview
-- 📦 A final redesign package with itemized costs and before/after comparison
+- 🖼️ **Your own room photo** furnished with the products you chose
+- 📦 A shopping list with prices, store links and the total against your budget
 
 ---
 
@@ -66,20 +70,21 @@ Designing and renovating a room from a photo is hard. People struggle to picture
 
 ## ⚙️ How it works
 
-The orchestrator is a state machine that moves every session through ten steps, with a mandatory pause for the user to choose products before any image is generated.
+Uploading a photo starts the conversation. When the brief is complete, the orchestrator runs the agents in order and pauses for the user to choose products before the room is rendered.
 
 ```mermaid
 flowchart TD
-    A["💬 Intake<br/>guided chat"] --> B["📷 Vision analysis<br/>GPT-4o"]
-    B --> C["❤️ Preference analysis"]
-    C --> D["📚 RAG lookup<br/>design knowledge base"]
-    D --> E["💰 Budget allocation<br/>per category"]
-    E --> F["🛒 Product search"]
-    F --> G["🏅 Rank & present"]
-    G --> H{"🙋 User selection<br/>human in the loop"}
-    H --> I["🖼️ Image generation<br/>DALL·E 3"]
-    I --> J["📦 Final result<br/>design + costs + before/after"]
-    K["⏰ Price & restock watcher"] -.-> J
+    P["📷 Room photo"] --> B["👁️ Vision analysis<br/>Llama 4 Scout"]
+    B --> A["💬 Conversation<br/>Llama 3.3 70B, one question at a time"]
+    A --> C["❤️ Brief check<br/>+ safety rules for kids and pets"]
+    C --> D["📚 RAG lookup<br/>bge-m3 embeddings"]
+    D --> E["💰 Budget split<br/>per item, in EGP"]
+    E --> F["🛒 Search<br/>IKEA Egypt + Amazon.eg"]
+    F --> F2["🔍 Filter<br/>price · relevance · stock · link opens"]
+    F2 --> G["🏅 Rank + keep the set within budget"]
+    G --> H{"🙋 User chooses<br/>human in the loop"}
+    H --> I["🖼️ FLUX.2 edits the user's own photo<br/>room + up to 3 product photos"]
+    I --> J["📦 Final result<br/>before/after + shopping list + total"]
 ```
 
 ---
@@ -88,30 +93,31 @@ flowchart TD
 
 | Agent | File | What it does |
 |---|---|---|
-| 💬 Intake | `intakeAgent.js` | Guided, multi-turn chat that collects the brief |
-| 📷 Vision | `visionAgent.js` | GPT-4o Vision turns the room photo into a structured room analysis |
-| ❤️ Preference | `preferenceAgent.js` | Tracks and de-duplicates style, colour, and keep/replace preferences |
-| 📚 RAG | `ragAgent.js` | Retrieves interior design guidance from a local vector index |
-| 💰 Budget | `budgetAgent.js` | Splits the total budget across categories by room type; kept items get no budget |
-| 🛒 Search | `searchAgent.js` | Provider-agnostic product search (SerpAPI, Rainforest, RapidAPI), with built-in fallback data |
-| 🏅 Ranking | `rankingAgent.js` | Ranks products on several criteria |
-| 🙋 Human-in-the-loop | `hitlManager.js` | Pauses the pipeline until the user confirms the product choices |
-| 📐 Placement | `placementAgent.js` | Plans where the chosen items go in the room |
-| 🖼️ Image generation | `imageGenAgent.js` | Builds an architectural prompt for DALL·E 3 to render the redesign |
-| 📦 Final designer | `finalDesigner.js` | Assembles the final redesign package |
-| ⏰ Price watcher | `priceWatcher.js` | Watches prices and stock of chosen items |
+| 👁️ Vision | `visionAgent.js` | Describes what is really in the photo: room type, furniture, walls, floor, windows, light |
+| 💬 Intake | `intakeAgent.js` | Two steps per message: strict JSON extraction, then a natural reply that asks the next question; the final summary is built in code so it always matches the saved brief |
+| ❤️ Preference | `preferenceAgent.js` | Checks the brief is complete and adds safety constraints for children and pets; never invents defaults |
+| 📚 RAG | `ragAgent.js` | Finds the most relevant style, layout, colour and safety rules by meaning, in Arabic or English |
+| 💰 Budget | `budgetAgent.js` | Splits the EGP budget across the chosen items by weight, with a realistic price range and a search query for each |
+| 🛒 Search | `searchAgent.js` | IKEA Egypt and Amazon.eg; drops results outside the price range, accessories (a small model checks each title), out-of-stock items and links that do not open |
+| 🏅 Ranking | `rankingAgent.js` | Scores budget fit, colour, style, ratings and store; picks one product per item and swaps until the set fits the budget |
+| 🙋 Human-in-the-loop | `hitlManager.js` | Pauses for the user's choice and accepts only products from our own verified results |
+| 📐 Placement | `placementAgent.js` | Plans where each chosen item goes |
+| 🖼️ Image generation | `imageGenAgent.js` | Sends the user's room photo plus up to 3 product photos to FLUX.2 and describes the smaller items in words |
+| 📦 Final designer | `finalDesigner.js` | Builds the shopping list, links and total in EGP |
+| ⏰ Price watcher | `priceWatcher.js` | Re-opens watched product pages and records if they are still available |
 
 ---
 
 ## ✨ Key features
 
-- **Room understanding:** room type, existing furniture, doors and windows, lighting, dominant colours
-- **Design guided by knowledge:** a seeded interior design knowledge base, retrieved per request
-- **Budget you can trust:** deterministic allocation, not a guess
-- **You stay in control:** nothing is generated until you pick the products
-- **Before / after preview** of the redesigned room
-- **Bilingual interface:** English and Arabic
-- **Works without paid search keys:** built-in fallback analysis and product data for demos
+- **Real conversation:** Egyptian Arabic or English, one question at a time, with a live "design brief" card
+- **Real products, real prices:** EGP prices from the stores at search time; no invented products or prices
+- **Every link checked:** each product page is opened before it is shown
+- **Stays within budget:** the recommended set is adjusted until it fits, or the app says honestly that it cannot
+- **Your own room:** the after image keeps your walls, window, floor and camera angle
+- **You stay in control:** nothing is rendered until you choose the products
+- **Free to run:** Cloudflare Workers AI free plan + SerpAPI free plan (Amazon.eg is optional; IKEA Egypt needs no key)
+- **No fake fallbacks:** if a key or the daily allowance is missing, the app says so clearly
 - **n8n workflows** for every step, ready to import
 
 ---
@@ -121,9 +127,10 @@ flowchart TD
 | Area | Tools |
 |---|---|
 | Backend | Node.js, Express, Multer (uploads) |
-| AI | OpenAI GPT-4o Vision, DALL·E 3 |
-| Retrieval | Local TF-IDF vector index over a design knowledge base |
-| Product search | SerpAPI, Rainforest API, RapidAPI (optional) |
+| AI (Cloudflare Workers AI) | Llama 4 Scout (vision), Llama 3.3 70B (conversation), Llama 3.1 8B (quick checks), bge-m3 (embeddings), FLUX.2 [klein] 9B (image editing) |
+| Retrieval | bge-m3 embeddings over the design knowledge base (`npm run seed`) |
+| Product search | IKEA Egypt site search, Amazon.eg through SerpAPI, 6–24 h cache |
+| Images | sharp (resizing before sending to the models) |
 | Workflows | n8n |
 | Frontend | HTML, CSS, JavaScript (glassmorphic UI, English / Arabic) |
 | Storage | JSON file database with audit log |
@@ -145,12 +152,14 @@ flowchart TD
     ├── n8n-workflows/                  # 9 n8n workflow exports (orchestrator + each agent)
     ├── src/
     │   ├── server.js                   # Express API + n8n webhook bridge
-    │   ├── orchestrator.js             # 10-step state machine
+    │   ├── orchestrator.js             # runs the agents in order
+    │   ├── ai/cloudflare.js            # one client for chat, vision, embeddings, image editing
     │   ├── agents/                     # the 12 agents listed above
-    │   ├── knowledge/                  # design knowledge base + vector index
+    │   ├── knowledge/                  # knowledge base, embeddings index, item catalogue
     │   └── storage/database.js         # persistence + audit log
     ├── public/                         # web app (index.html, style.css, app.js, i18n.js)
-    ├── tests/test-pipeline.js          # end-to-end verification
+    ├── tests/unit.test.js              # offline tests (npm test)
+    ├── tests/smoke-live.js             # full live run with the real APIs (npm run smoke)
     ├── Dockerfile
     └── .env.example
 ```
@@ -164,29 +173,45 @@ flowchart TD
 ```bash
 cd roomly-ai/roomly-ai
 npm install
-npm run seed            # build the design knowledge index
 ```
 
-Create `.env` from `.env.example`:
+Create `.env` from `.env.example` (both keys are free, no credit card):
 
 ```env
 PORT=3000
 
-# OpenAI API key (vision analysis and DALL·E 3 image generation)
-OPENAI_API_KEY=your_openai_api_key_here
+# Cloudflare Workers AI: dash.cloudflare.com
+#   Account ID: dashboard home. API token: My Profile > API Tokens > "Workers AI" template
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=
 
-# Product search provider keys (optional)
+# SerpAPI for Amazon.eg (optional; without it only IKEA Egypt is searched): serpapi.com
 SERPAPI_API_KEY=
-RAINFOREST_API_KEY=
-RAPIDAPI_KEY=
 ```
 
 Run it:
 
 ```bash
-npm start               # open http://localhost:3000
-npm run test-pipeline   # end-to-end check
+npm start          # open http://localhost:3000
+npm test           # offline tests, no keys needed
+npm run smoke      # full live run: photo → chat → products → image (uses the free quotas)
+npm run seed       # only after editing src/knowledge/knowledgeBase.json
 ```
+
+---
+
+## 🆓 Free plan limits
+
+| Service | Free allowance | What it means |
+|---|---|---|
+| Cloudflare Workers AI | 10,000 neurons a day, reset at 00:00 UTC (02:00 Cairo) | About 4 full sessions a day; the app shows a clear message when it runs out |
+| SerpAPI | 250 searches a month | About 40 sessions a month (one search per item); results are cached for 24 h |
+| IKEA Egypt | No key | Uses IKEA's public website search, cached for 6 h |
+
+Notes:
+- The after image is an AI preview. It keeps your room but the products may look slightly different from the real ones.
+- Prices and availability come from the stores at search time and can change.
+- The IKEA search is the same public endpoint the IKEA website uses; it is not an official API and could change.
 
 ---
 
@@ -195,7 +220,7 @@ npm run test-pipeline   # end-to-end check
 The repo includes a free Render Blueprint (`render.yaml`) that builds the app from `roomly-ai/roomly-ai` with Docker.
 
 1. In Render, choose **New → Blueprint** and connect this repository.
-2. Enter `OPENAI_API_KEY` when asked. Add a product-search key only if you want live retailer results.
+2. Enter `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
 3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"`.
 
 The free service sleeps after inactivity and clears uploaded photos and sessions when it restarts.

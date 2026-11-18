@@ -6,29 +6,35 @@
       "name": "Subworkflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [100, 300],
+      "position": [
+        100,
+        300
+      ],
       "id": "vision_trigger"
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "options": {
-          "maxTokens": 1500,
-          "temperature": 0.2
+        "method": "POST",
+        "url": "http://localhost:3000/api/nodes/vision",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
         },
-        "prompt": "You are the Roomly AI Vision Agent. Analyze the room image strictly into JSON format containing roomType, furnitureAndObjects, colorPaletteDetected, architecturalElements, lightingAssessment, and spatialCharacteristics."
+        "options": {}
       },
-      "name": "OpenAI Vision Analysis",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 1,
-      "position": [320, 300],
-      "id": "openai_vision_node",
-      "credentials": {
-        "openAiApi": {
-          "id": "OPENAI_CREDENTIAL_ID",
-          "name": "OpenAI Account"
-        }
-      }
+      "name": "Roomly Vision Agent (Cloudflare Workers AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        300
+      ],
+      "id": "roomly_vision_node"
     },
     {
       "parameters": {
@@ -37,16 +43,35 @@
       "name": "Format Vision Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [540, 300],
+      "position": [
+        540,
+        300
+      ],
       "id": "format_vision_node"
     }
   ],
   "connections": {
     "Subworkflow Trigger": {
-      "main": [[{ "node": "OpenAI Vision Analysis", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Roomly Vision Agent (Cloudflare Workers AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "OpenAI Vision Analysis": {
-      "main": [[{ "node": "Format Vision Output", "type": "main", "index": 0 }]]
+    "Roomly Vision Agent (Cloudflare Workers AI)": {
+      "main": [
+        [
+          {
+            "node": "Format Vision Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   }
 }
