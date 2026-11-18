@@ -1,28 +1,19 @@
+// Price watcher: re-opens every watched product page and records whether it is still available.
 const db = require('../storage/database');
+const { verifyLink } = require('./searchAgent');
 
 class PriceWatcherAgent {
   async checkWatchlistPrices() {
     const watchlist = db.getPriceWatchlist();
-    console.log(`[Price Watcher] Checking ${watchlist.length} items in price watchlist...`);
-
+    console.log(`[Price Watcher] Checking ${watchlist.length} watched products...`);
     const alerts = [];
     for (const item of watchlist) {
-      // In live mode with credentials, queries the product provider API for current price and in_stock status
-      const simulatedPriceChange = item.lastCheckedPrice; // Live checker logic
-      const isStillInStock = true;
-
-      db.updateWatchlistItem(item.id, {
-        lastCheckedPrice: simulatedPriceChange,
-        status: isStillInStock ? 'IN_STOCK' : 'OUT_OF_STOCK',
-        lastCheckedAt: new Date().toISOString()
-      });
+      const check = await verifyLink({ product_url: item.product_url, source: item.source });
+      const status = check.ok ? 'AVAILABLE' : 'UNAVAILABLE';
+      if (item.status && item.status !== status) alerts.push({ id: item.id, title: item.title, from: item.status, to: status });
+      db.updateWatchlistItem(item.id, { status, lastHttpStatus: check.status, lastCheckedAt: new Date().toISOString() });
     }
-
-    return {
-      totalMonitored: watchlist.length,
-      alerts,
-      timestamp: new Date().toISOString()
-    };
+    return { totalMonitored: watchlist.length, alerts, timestamp: new Date().toISOString() };
   }
 
   addProduct(product) {

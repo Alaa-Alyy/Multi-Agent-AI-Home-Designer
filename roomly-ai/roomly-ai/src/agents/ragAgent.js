@@ -1,94 +1,79 @@
+// RAG: retrieves the design knowledge most relevant to this brief, by meaning (bge-m3 embeddings).
 const fs = require('fs');
 const path = require('path');
 const db = require('../storage/database');
+const ai = require('../ai/cloudflare');
+
+const indexPath = path.join(__dirname, '../knowledge/vectorIndex.json');
+const kbPath = path.join(__dirname, '../knowledge/knowledgeBase.json');
 
 class RAGAgent {
   constructor() {
-    this.indexPath = path.join(__dirname, '../knowledge/vectorIndex.json');
-    this.kbPath = path.join(__dirname, '../knowledge/knowledgeBase.json');
     this.index = null;
     this.kb = null;
-    this.loadIndex();
   }
 
-  loadIndex() {
-    if (fs.existsSync(this.indexPath)) {
-      this.index = JSON.parse(fs.readFileSync(this.indexPath, 'utf-8'));
+  load() {
+    if (!this.kb) this.kb = JSON.parse(fs.readFileSync(kbPath, 'utf-8'));
+    if (!this.index) {
+      if (!fs.existsSync(indexPath)) throw new Error('Knowledge index missing. Run: npm run seed');
+      this.index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+      if (!this.index.documents?.[0]?.embedding) throw new Error('Knowledge index has no embeddings. Run: npm run seed');
     }
-    if (fs.existsSync(this.kbPath)) {
-      this.kb = JSON.parse(fs.readFileSync(this.kbPath, 'utf-8'));
-    }
+  }
+
+  buildQuery(prefs, vision) {
+    const parts = [
+      `${prefs.preferredStyle || ''} style ${String(prefs.roomType || '').replace('_', ' ')}`,
+      prefs.colors?.length ? `colours ${prefs.colors.join(', ')}` : '',
+      prefs.items?.length ? `furniture: ${prefs.items.join(', ').replace(/_/g, ' ')}` : '',
+      prefs.occupants && prefs.occupants !== 'adults' ? `home with ${prefs.occupants.replace(/_/g, ' ')}` : '',
+      vision?.availableFreeSpace === 'tight' ? 'small room' : '',
+      prefs.notes || ''
+    ];
+    return parts.filter(Boolean).join('. ');
   }
 
   async lookupDesignRules(sessionId) {
-    if (!this.index || !this.kb) {
-      this.loadIndex();
-    }
+    this.load();
+    const prefs = db.getPreferences(sessionId) || {};
+    const vision = db.getVisionAnalysis(sessionId)?.analysis;
+    const query = this.buildQuery(prefs, vision);
+    console.log(`[RAG Agent] Query: "${query}"`);
 
-    const preferences = db.getPreferences(sessionId) || {};
-    const vision = db.getVisionAnalysis(sessionId);
+    const [queryVector] = await ai.embed([query]);
+    const ranked = this.index.documents
+      .map(doc => ({ doc, score: ai.cosine(queryVector, doc.embedding) }))
+      .sort((a, b) => b.score - a.score);
 
-    const styleId = (preferences.preferredStyle || 'japandi').toLowerCase().replace(/\s+/g, '_');
-    const roomType = preferences.roomType || vision?.analysis?.roomType || 'living_room';
-    const occupants = preferences.occupants || 'adults';
+    const style = this.kb.styles.find(s => s.id === prefs.preferredStyle)
+      || this.kb.styles.find(s => s.id === ranked.find(r => r.doc.type === 'style')?.doc.metadata.styleId)
+      || this.kb.styles[0];
 
-    console.log(`[RAG Agent] Performing knowledge lookup for Style: ${styleId}, Room: ${roomType}, Occupants: ${occupants}...`);
+    const room = prefs.roomType;
+    const occupants = prefs.occupants || 'adults';
+    const safetyRules = this.kb.safetyAndOccupantRules.filter(r =>
+      (occupants.includes('children') && r.occupant === 'children') || (occupants.includes('pets') && r.occupant === 'pets'));
 
-    // 1. Retrieve Style Definition
-    let matchedStyle = this.kb?.styles?.find(s => s.id === styleId || s.id.includes(styleId) || styleId.includes(s.id));
-    if (!matchedStyle) {
-      matchedStyle = this.kb?.styles?.[0]; // Fallback to Japandi
-    }
+    // Top rules by meaning, always keeping the ones for this room type
+    const topRules = ranked.filter(r => r.doc.type !== 'style').slice(0, 6).map(r => ({ ...r.doc, score: Number(r.score.toFixed(3)) }));
+    const roomRules = this.kb.spatialRules.filter(r => r.roomType === room || r.roomType === 'all');
 
-    // 2. Retrieve Spatial Rules relevant to roomType
-    const matchedSpatialRules = (this.kb?.spatialRules || []).filter(
-      r => r.roomType === roomType || r.roomType === 'all'
-    );
-
-    // 3. Retrieve Color Rules
-    const matchedColorRules = this.kb?.colorRules || [];
-
-    // 4. Retrieve Safety & Occupant Rules
-    const matchedSafetyRules = (this.kb?.safetyAndOccupantRules || []).filter(r => {
-      if (occupants.includes('children') || occupants.includes('toddler')) {
-        return r.occupant === 'children';
-      }
-      if (occupants.includes('pet') || occupants.includes('dog') || occupants.includes('cat')) {
-        return r.occupant === 'pets';
-      }
-      return false;
-    });
-
-    // 5. Query Vector Document Index for semantic ranking
-    const queryTerms = `${styleId} ${roomType} ${occupants} furniture layout lighting rug seating storage`.toLowerCase().split(/\s+/);
-    const scoredDocs = (this.index?.documents || []).map(doc => {
-      let score = 0;
-      const text = (doc.title + ' ' + doc.content).toLowerCase();
-      queryTerms.forEach(term => {
-        if (text.includes(term)) score += 1;
-      });
-      return { doc, score };
-    }).sort((a, b) => b.score - a.score);
-
-    const topRankedChunks = scoredDocs.slice(0, 6).map(item => item.doc);
-
-    const ragResult = {
-      retrievedStyle: matchedStyle,
-      spatialRules: matchedSpatialRules,
-      colorRules: matchedColorRules,
-      safetyRules: matchedSafetyRules,
-      topRankedChunks,
+    const result = {
+      query,
+      retrievedStyle: style,
+      spatialRules: roomRules,
+      colorRules: this.kb.colorRules,
+      safetyRules,
+      topRankedChunks: topRules.map(({ embedding, ...rest }) => rest),
       designDirectives: [
-        `Anchor seating with minimum front two legs on a large area rug (recommended 8x10 or 9x12 for ${roomType}).`,
-        `Maintain 14-18 inches clearance between sofa edge and coffee table.`,
-        `Incorporate 3 layers of illumination: Ambient (ceiling pendant), Task (reading floor lamp), and Accent (warm LED/ceramic light).`,
-        `Execute the 60-30-10 color rule: 60% dominant base (${matchedStyle.recommendedColors[0]}), 30% secondary furniture (${matchedStyle.recommendedColors[1]}), 10% accent textures (${matchedStyle.recommendedColors[4] || matchedStyle.recommendedColors[3]}).`,
-        ...(matchedSafetyRules.length > 0 ? matchedSafetyRules.map(s => `Safety Directive: ${s.rule}`) : [])
+        ...topRules.slice(0, 4).map(r => r.content),
+        ...safetyRules.map(s => `Safety: ${s.rule}`)
       ]
     };
 
-    db.saveRAGContext(sessionId, ragResult);
-    return ragResult;
+    db.saveRAGContext(sessionId, result);
+    return result;
   }
 }
 

@@ -3,251 +3,164 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const db = require('./storage/database');
+const ai = require('./ai/cloudflare');
 const orchestrator = require('./orchestrator');
 const intakeAgent = require('./agents/intakeAgent');
 const visionAgent = require('./agents/visionAgent');
-const preferenceAgent = require('./agents/preferenceAgent');
 const ragAgent = require('./agents/ragAgent');
 const budgetAgent = require('./agents/budgetAgent');
 const searchAgent = require('./agents/searchAgent');
 const rankingAgent = require('./agents/rankingAgent');
-const hitlManager = require('./agents/hitlManager');
 const placementAgent = require('./agents/placementAgent');
 const imageGenAgent = require('./agents/imageGenAgent');
 const finalDesigner = require('./agents/finalDesigner');
-const priceWatcher = require('./agents/priceWatcher');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const storageDir = process.env.STORAGE_DIR
-  ? path.resolve(process.env.STORAGE_DIR)
-  : path.join(__dirname, '../data');
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Static asset delivery
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/data/uploads', express.static(path.join(storageDir, 'uploads')));
-app.use('/data/generated', express.static(path.join(storageDir, 'generated')));
+app.use('/data/uploads', express.static(db.uploadsDir));
+app.use('/data/generated', express.static(db.generatedDir));
 
-// File upload configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(storageDir, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, db.uploadsDir),
+    filename: (req, file, cb) => {
+      const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
+      cb(null, `room_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
     }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `room_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`);
+  }),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /^image\/(jpeg|png|webp)$/.test(file.mimetype))
+});
+
+// Errors the user should understand, in their language
+function sendError(res, err, lang = 'en') {
+  const ar = lang === 'ar';
+  if (err.code === 'DAILY_AI_LIMIT') {
+    return res.status(429).json({ error: ar
+      ? 'خلصت الكمية المجانية من الذكاء الاصطناعي النهارده. هتتجدد الساعة ٢ بالليل بتوقيت القاهرة.'
+      : err.message, code: err.code });
   }
-});
-const upload = multer({ storage });
+  if (err.code === 'MISSING_CLOUDFLARE_CREDENTIALS') return res.status(503).json({ error: err.message, code: err.code });
+  if (err.code === 'BRIEF_INCOMPLETE') {
+    return res.status(400).json({ error: ar ? 'لسه محتاجين نكمّل كام سؤال قبل التصميم.' : err.message, code: err.code, missing: err.missing });
+  }
+  console.error(err);
+  return res.status(500).json({ error: err.message });
+}
 
-// ==========================================
-// ROOM-REDECORATION API ENDPOINTS
-// ==========================================
+const wrap = handler => async (req, res) => {
+  try {
+    await handler(req, res);
+  } catch (err) {
+    sendError(res, err, req.body?.lang);
+  }
+};
 
-// 1. Create or Get Session
-app.post('/api/session', (req, res) => {
-  const session = db.createSession(req.body);
-  res.json({ success: true, session });
-});
+// ---------- session ----------
+app.post('/api/session', (req, res) => res.json({ success: true, session: db.createSession() }));
 
 app.get('/api/session/:sessionId', (req, res) => {
-  const session = db.getSession(req.params.sessionId);
+  const id = req.params.sessionId;
+  const session = db.getSession(id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
-
-  const vision = db.getVisionAnalysis(req.params.sessionId);
-  const preferences = db.getPreferences(req.params.sessionId);
-  const rag = db.getRAGContext(req.params.sessionId);
-  const budget = db.getBudgetAllocation(req.params.sessionId);
-  const search = db.getProductSearch(req.params.sessionId);
-  const rankings = db.getProductRankings(req.params.sessionId);
-  const hitl = db.getHITLState(req.params.sessionId);
-  const placement = placementAgent.getPlacementPlan(req.params.sessionId);
-  const generatedImage = db.getGeneratedImage(req.params.sessionId);
-  const finalDesign = db.getFinalDesign(req.params.sessionId);
-  const logs = db.getExecutionLogs(req.params.sessionId);
-
   res.json({
     session,
-    vision,
-    preferences,
-    rag,
-    budget,
-    search,
-    rankings,
-    hitl,
-    placement,
-    generatedImage,
-    finalDesign,
-    logs
+    vision: db.getVisionAnalysis(id)?.analysis || null,
+    preferences: db.getPreferences(id),
+    rag: db.getRAGContext(id),
+    budget: db.getBudgetAllocation(id),
+    search: db.getProductSearch(id),
+    rankings: db.getProductRankings(id),
+    hitl: db.getHITLState(id),
+    placement: placementAgent.getPlacementPlan(id),
+    generatedImage: db.getGeneratedImage(id),
+    finalDesign: db.getFinalDesign(id)
   });
 });
 
-// 2. Chat & Intake Message
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { sessionId, message, lang = 'en' } = req.body;
-    const result = await intakeAgent.processUserMessage(sessionId, message);
-    
-    if (lang === 'ar') {
-      result.reply = `مرحباً بك في Roomly AI! تم استلام رسالتك وتحديث تفضيلات التصميم بنجاح. سنواصل العمل على تصميم غرفتك بأعلى معايير التناسق والراحة.`;
-    }
-    
-    res.json({ success: true, result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// ---------- 1. upload the room photo: analyse it and start the conversation ----------
+app.post('/api/upload', upload.single('image'), wrap(async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Please upload a JPG, PNG or WEBP photo (max 15 MB).' });
+  const lang = req.body.lang === 'ar' ? 'ar' : 'en';
+  const sessionId = req.body.sessionId && db.getSession(req.body.sessionId) ? req.body.sessionId : db.createSession().sessionId;
+  const imageUrl = `/data/uploads/${path.basename(req.file.path)}`;
+  const { session } = db.registerNewImage(sessionId, req.file.path, imageUrl);
 
-// 3. Upload Room Image & Register New Image Identity
-app.post('/api/upload', upload.single('image'), async (req, res) => {
-  try {
-    const sessionId = req.body.sessionId || db.createSession().sessionId;
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file uploaded' });
-    }
+  const vision = await visionAgent.analyzeRoom(session.sessionId, session.roomId, req.file.path);
+  const chat = await intakeAgent.openingMessage(session.sessionId, lang);
+  res.json({ success: true, sessionId: session.sessionId, imageUrl, vision, chat });
+}));
 
-    const imagePath = req.file.path;
-    const relativeUrl = `/data/uploads/${path.basename(imagePath)}`;
+// ---------- 2. conversation ----------
+app.post('/api/chat', wrap(async (req, res) => {
+  const { sessionId, message, lang = 'en' } = req.body;
+  if (!message || !String(message).trim()) return res.status(400).json({ error: 'Empty message' });
+  const result = await intakeAgent.processUserMessage(sessionId, String(message).slice(0, 2000), lang);
+  res.json({ success: true, result });
+}));
 
-    // Register image and trigger cache invalidation for new image
-    const { session, isNew, imageHash } = db.registerNewImage(sessionId, imagePath, relativeUrl);
-
-    db.addChatMessage(sessionId, 'user', 'Uploaded new room photo for redesign', {
-      imageUrl: relativeUrl,
-      fileName: req.file.originalname,
-      imageHash,
-      isNew
-    });
-
-    res.json({
-      success: true,
-      sessionId,
-      roomId: session.roomId,
-      imageId: session.imageId,
-      imageHash,
-      designVersion: session.designVersion,
-      isNewImage: isNew,
-      imagePath,
-      imageUrl: relativeUrl
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 4. Run Pipeline Until HITL Selection
-app.post('/api/pipeline/start', async (req, res) => {
-  try {
-    const { sessionId, customPreferences } = req.body;
-    const session = db.getSession(sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-
-    const imagePath = session.originalImagePath;
-    const result = await orchestrator.executePipelineUntilHITL(sessionId, imagePath, customPreferences || {});
-    res.json({ success: true, ...result });
-  } catch (err) {
-    console.error('Pipeline error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 5. Human-in-the-loop: Confirm Selection & Continue with Placement + Furnished Image Gen + Final Result
-app.post('/api/hitl/confirm', async (req, res) => {
-  try {
-    const { sessionId, selectedProducts, lang = 'en' } = req.body;
-    if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
-    if (!Array.isArray(selectedProducts)) return res.status(400).json({ error: 'selectedProducts array is required' });
-
-    const result = await orchestrator.resumePipelineAfterSelection(sessionId, selectedProducts, lang);
-    res.json({ success: true, ...result });
-  } catch (err) {
-    console.error('HITL confirmation error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 6. Direct Node-level Endpoints for n8n Webhook / Subworkflow Integration
-app.post('/api/nodes/vision', async (req, res) => {
-  const { sessionId, roomId, imagePath } = req.body;
-  const analysis = await visionAgent.analyzeRoom(sessionId, roomId, imagePath);
-  res.json(analysis);
-});
-
-app.post('/api/nodes/rag', async (req, res) => {
+// ---------- 3. design: run until the user chooses products ----------
+app.post('/api/pipeline/start', wrap(async (req, res) => {
   const { sessionId } = req.body;
-  const rag = await ragAgent.lookupDesignRules(sessionId);
-  res.json(rag);
-});
+  if (!db.getSession(sessionId)) return res.status(404).json({ error: 'Session not found' });
+  const result = await orchestrator.executePipelineUntilHITL(sessionId);
+  res.json({ success: true, ...result });
+}));
 
-app.post('/api/nodes/budget', (req, res) => {
-  const { sessionId } = req.body;
-  const budget = budgetAgent.allocateBudget(sessionId);
-  res.json(budget);
-});
+// ---------- 4. the user's choice: render the room and build the final package ----------
+app.post('/api/hitl/confirm', wrap(async (req, res) => {
+  const { sessionId, selectedProductIds, selectedProducts, lang = 'en' } = req.body;
+  const selection = selectedProductIds || selectedProducts;
+  if (!sessionId || !Array.isArray(selection)) return res.status(400).json({ error: 'sessionId and selectedProductIds are required' });
+  const result = await orchestrator.resumePipelineAfterSelection(sessionId, selection, lang);
+  res.json({ success: true, ...result });
+}));
 
-app.post('/api/nodes/search', async (req, res) => {
-  const { sessionId } = req.body;
-  const search = await searchAgent.searchProductsForAllocations(sessionId);
-  res.json(search);
-});
-
-app.post('/api/nodes/rank', (req, res) => {
-  const { sessionId } = req.body;
-  const rankings = rankingAgent.rankProducts(sessionId);
-  res.json(rankings);
-});
-
-app.post('/api/nodes/placement', (req, res) => {
-  const { sessionId, selectedProducts } = req.body;
-  const plan = placementAgent.generatePlacementPlan(sessionId, selectedProducts || []);
-  res.json(plan);
-});
-
-app.post('/api/nodes/image-gen', async (req, res) => {
-  const { sessionId } = req.body;
-  const img = await imageGenAgent.generateAfterImage(sessionId);
-  res.json(img);
-});
-
-app.post('/api/nodes/final-designer', (req, res) => {
+// Retry only the image (e.g. after the daily limit resets)
+app.post('/api/image/retry', wrap(async (req, res) => {
   const { sessionId, lang = 'en' } = req.body;
-  const finalPkg = finalDesigner.synthesizeFinalPackage(sessionId, lang);
-  res.json(finalPkg);
-});
+  const image = await imageGenAgent.generateAfterImage(sessionId);
+  const finalDesign = finalDesigner.synthesizeFinalPackage(sessionId, lang);
+  res.json({ success: true, image, finalDesign });
+}));
 
-// 7. System & Health Check
+// ---------- single-agent endpoints (used by the n8n workflows) ----------
+app.post('/api/nodes/vision', wrap(async (req, res) => {
+  const s = db.getSession(req.body.sessionId);
+  res.json(await visionAgent.analyzeRoom(req.body.sessionId, s?.roomId, s?.originalImagePath));
+}));
+app.post('/api/nodes/rag', wrap(async (req, res) => res.json(await ragAgent.lookupDesignRules(req.body.sessionId))));
+app.post('/api/nodes/budget', wrap(async (req, res) => res.json(budgetAgent.allocateBudget(req.body.sessionId))));
+app.post('/api/nodes/search', wrap(async (req, res) => res.json(await searchAgent.searchProductsForAllocations(req.body.sessionId))));
+app.post('/api/nodes/rank', wrap(async (req, res) => res.json(rankingAgent.rankProducts(req.body.sessionId))));
+app.post('/api/nodes/image-gen', wrap(async (req, res) => res.json(await imageGenAgent.generateAfterImage(req.body.sessionId))));
+app.post('/api/nodes/final-designer', wrap(async (req, res) => res.json(finalDesigner.synthesizeFinalPackage(req.body.sessionId, req.body.lang))));
+
+// ---------- health ----------
 app.get('/api/health', (req, res) => {
-  const searchProvider = searchAgent.getActiveProvider();
   res.json({
     status: 'HEALTHY',
-    service: 'Roomly AI Redecoration Platform',
+    service: 'Roomly AI',
     timestamp: new Date().toISOString(),
-    credentials: {
-      openai: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== ''),
-      serpapi: Boolean(process.env.SERPAPI_API_KEY && process.env.SERPAPI_API_KEY.trim() !== ''),
-      rainforest: Boolean(process.env.RAINFOREST_API_KEY && process.env.RAINFOREST_API_KEY.trim() !== ''),
-      rapidapi: Boolean(process.env.RAPIDAPI_KEY && process.env.RAPIDAPI_KEY.trim() !== '')
-    },
-    activeSearchProvider: searchProvider.name
+    credentials: { cloudflare: ai.isConfigured(), serpapi: Boolean(process.env.SERPAPI_API_KEY) },
+    activeSearchProvider: searchAgent.getActiveProvider().name,
+    knowledgeIndexReady: fs.existsSync(path.join(__dirname, 'knowledge/vectorIndex.json'))
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`🚀 Roomly AI Platform Server running on http://localhost:${PORT}`);
-  console.log(`📊 Knowledge Base: Seeded and Ready`);
-  console.log(`🔌 n8n Workflow Integration Endpoints: Active`);
-  console.log(`🎨 Web App Interface: http://localhost:${PORT}`);
-  console.log(`======================================================\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\nRoomly AI running on http://localhost:${PORT}`);
+    console.log(`Cloudflare AI: ${ai.isConfigured() ? 'configured' : 'MISSING (set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN)'}`);
+    console.log(`Product search: ${searchAgent.getActiveProvider().name}\n`);
+  });
+}
+
+module.exports = app;

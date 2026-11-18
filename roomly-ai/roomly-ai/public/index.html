@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roomly AI — AI Room Redecoration Platform</title>
-  <meta name="description" content="AI-native interior design copilot: Vision room analysis, RAG design knowledge, deterministic budget allocation, real product search, HITL selection, explicit placement planning, and realistic DALL-E 3 image generation.">
+  <title>Roomly AI — AI Room Redesign</title>
+  <meta name="description" content="Upload a photo of your room, chat about your style and budget, and get a redesign with real products from Egyptian stores, shown in your own room.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,8 +28,8 @@
           <span id="systemStatus" data-i18n="engineReady">Engine Ready</span>
         </div>
         <div class="credentials-badge" id="credentialsBadge">
-          <span class="cred-pill" id="openAiCred" data-i18n="openAiReady">OpenAI: Ready</span>
-          <span class="cred-pill" id="searchCred" data-i18n="searchCredReady">Search: Credential-Ready</span>
+          <span class="cred-pill" id="aiCred" data-i18n="aiCredReady">AI: not configured</span>
+          <span class="cred-pill" id="searchCred" data-i18n="searchCredReady">Search: IKEA only</span>
         </div>
 
         <!-- THEME & LANGUAGE CONTROLS -->
@@ -99,7 +99,7 @@
               <div class="upload-prompt" id="uploadPrompt">
                 <div class="upload-icon">📁</div>
                 <p><strong data-i18n="uploadPromptText">Click to browse or drag & drop room photo</strong></p>
-                <span class="hint" data-i18n="uploadHint">Supports JPG, PNG, WEBP up to 25MB</span>
+                <span class="hint" data-i18n="uploadHint">Empty or furnished · JPG, PNG, WEBP · up to 15 MB</span>
               </div>
               <div class="preview-container" id="previewContainer" style="display:none;">
                 <img id="imagePreview" src="" alt="Room Preview">
@@ -109,78 +109,39 @@
           </div>
         </div>
 
+        <!-- Chat: the main way to give your preferences -->
         <div class="card glass-card">
           <div class="card-header">
-            <h3 data-i18n="prefCardTitle">🎯 Design Preferences</h3>
-          </div>
-          <div class="card-body">
-            <form id="preferencesForm">
-              <div class="form-group">
-                <label for="prefRoomType" data-i18n="roomTypeLabel">Room Type</label>
-                <select id="prefRoomType" class="form-select">
-                  <option value="bedroom" selected data-i18n="roomTypeBedroom">Bedroom</option>
-                  <option value="living_room" data-i18n="roomTypeLiving">Living Room</option>
-                  <option value="home_office" data-i18n="roomTypeOffice">Home Office / Workspace</option>
-                  <option value="dining_room" data-i18n="roomTypeDining">Dining Room</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="prefStyle" data-i18n="targetStyleLabel">Target Style</label>
-                <select id="prefStyle" class="form-select">
-                  <option value="modern_farmhouse" selected data-i18n="styleFarmhouse">Modern Farmhouse (Rustic & Black Iron)</option>
-                  <option value="japandi" data-i18n="styleJapandi">Japandi (Warm Minimal + Wabi-Sabi)</option>
-                  <option value="scandinavian" data-i18n="styleScandi">Scandinavian (Light, Functional Hygge)</option>
-                  <option value="mid_century_modern" data-i18n="styleMcm">Mid-Century Modern (Walnut & Curves)</option>
-                  <option value="minimalist" data-i18n="styleMinimalist">Minimalist (Clean Architectural Lines)</option>
-                  <option value="industrial" data-i18n="styleIndustrial">Industrial (Exposed Brick & Iron)</option>
-                  <option value="bohemian" data-i18n="styleBohemian">Bohemian (Layered Kilim & Greenery)</option>
-                  <option value="coastal" data-i18n="styleCoastal">Coastal Modern (Airy Whites & Teal)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="prefBudget" data-i18n="budgetLabel">Total Redecoration Budget ($USD)</label>
-                <div class="budget-input-wrapper">
-                  <span class="currency-symbol">$</span>
-                  <input type="number" id="prefBudget" class="form-input" value="4500" min="500" max="100000" step="100">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label data-i18n="safetyLabel">Household & Safety Considerations</label>
-                <div class="pill-checkbox-group">
-                  <label class="pill-check"><input type="checkbox" id="chkChildren" value="children"> <span data-i18n="optKids">👶 Toddler / Kids</span></label>
-                  <label class="pill-check"><input type="checkbox" id="chkPets" value="pets"> <span data-i18n="optPets">🐾 Dogs / Cats</span></label>
-                  <label class="pill-check"><input type="checkbox" id="chkEco" value="eco"> <span data-i18n="optEco">🌿 Sustainable Woods</span></label>
-                </div>
-              </div>
-
-              <button type="button" class="btn btn-primary btn-block" id="btnStartPipeline">
-                <span data-i18n="btnRunPipeline">🚀 Run Full AI Redesign Pipeline</span>
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Chat / Session Log -->
-        <div class="card glass-card">
-          <div class="card-header">
-            <h3 data-i18n="chatCardTitle">💬 Roomly Copilot Chat</h3>
+            <h3 data-i18n="chatCardTitle">💬 Chat with Roomly</h3>
           </div>
           <div class="card-body">
             <div class="chat-messages" id="chatMessages">
               <div class="chat-msg assistant">
                 <div class="msg-avatar">🤖</div>
                 <div class="msg-bubble" data-i18n="chatWelcome">
-                  Welcome to Roomly AI! Upload your room photo above and set your target style to start the autonomous interior redesign pipeline.
+                  Hi! I am Roomly. Upload a photo of your room and I will ask you a few questions to plan the redesign.
                 </div>
               </div>
             </div>
             <div class="chat-input-row">
-              <input type="text" id="chatInput" class="form-input" placeholder="Type a message or adjustment..." data-i18n-placeholder="chatPlaceholder">
-              <button type="button" class="btn btn-secondary" id="btnSendChat" data-i18n="btnSend">Send</button>
+              <input type="text" id="chatInput" class="form-input" placeholder="Type your answer..." data-i18n-placeholder="chatPlaceholder" disabled>
+              <button type="button" class="btn btn-secondary" id="btnSendChat" data-i18n="btnSend" disabled>Send</button>
             </div>
+          </div>
+        </div>
+
+        <!-- Design brief: filled in from the conversation -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <h3 data-i18n="briefCardTitle">📝 Your design brief</h3>
+          </div>
+          <div class="card-body">
+            <div id="briefContent" class="brief-list">
+              <div class="empty-state" data-i18n="briefEmpty">Upload a photo and answer a few questions in the chat.</div>
+            </div>
+            <button type="button" class="btn btn-primary btn-block" id="btnStartPipeline" disabled style="margin-top: 12px;">
+              <span data-i18n="btnNotReady">Answer the questions first</span>
+            </button>
           </div>
         </div>
       </section>
