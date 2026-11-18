@@ -14,6 +14,10 @@
   <b>Upload a photo of your room, tell it your style and budget, and a team of AI agents plans a purchase-ready redesign.</b>
 </p>
 
+<p align="center">
+  <img src="assets/redesign.svg" width="1000" alt="Animated before and after room redesign by Roomly AI agents" />
+</p>
+
 ---
 
 ## 📑 Contents
