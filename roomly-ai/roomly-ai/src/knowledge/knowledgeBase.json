@@ -6,73 +6,353 @@
       "id": "japandi",
       "name": "Japandi",
       "description": "A hybrid aesthetic blending Scandinavian functional simplicity and warm, serene Japanese wabi-sabi minimalism.",
-      "keyElements": ["Clean lines", "Low-profile furniture", "Natural unvarnished woods", "Muted earth tones", "Textured ceramics", "Paper lanterns", "Biophilic minimalism"],
-      "materials": ["Light white oak", "Walnut", "Bamboo", "Linen", "Wabi-sabi ceramic", "Jute", "Paper cord"],
-      "recommendedColors": ["#E8E3D9", "#C5BAA8", "#8B8579", "#3E3B36", "#5C6B5E"],
-      "signaturePieces": ["Low-platform sofa", "Paper lantern pendant light", "Slatted oak sideboard", "Minimalist ceramic vase", "Low round ash coffee table"]
+      "keyElements": [
+        "Clean lines",
+        "Low-profile furniture",
+        "Natural unvarnished woods",
+        "Muted earth tones",
+        "Textured ceramics",
+        "Paper lanterns",
+        "Biophilic minimalism"
+      ],
+      "materials": [
+        "Light white oak",
+        "Walnut",
+        "Bamboo",
+        "Linen",
+        "Wabi-sabi ceramic",
+        "Jute",
+        "Paper cord"
+      ],
+      "recommendedColors": [
+        "#E8E3D9",
+        "#C5BAA8",
+        "#8B8579",
+        "#3E3B36",
+        "#5C6B5E"
+      ],
+      "signaturePieces": [
+        "Low-platform sofa",
+        "Paper lantern pendant light",
+        "Slatted oak sideboard",
+        "Minimalist ceramic vase",
+        "Low round ash coffee table"
+      ]
     },
     {
       "id": "scandinavian",
       "name": "Scandinavian",
       "description": "Nordic interior design emphasizing hygge coziness, luminous light maximization, clean functionality, and organic textures.",
-      "keyElements": ["Bright airy spaces", "Light wood tones", "Plush wool and shearling throws", "Functional storage", "Simple geometric silhouettes"],
-      "materials": ["Bleached pine", "Birch", "Ash", "Wool", "Boucle", "Cotton canvas", "Matte ceramic"],
-      "recommendedColors": ["#F8F9FA", "#E9ECEF", "#DEE2E6", "#6C757D", "#495057", "#A5A58D"],
-      "signaturePieces": ["Tapered leg sofa in oat grey", "Nesting round coffee tables", "Wishbone dining chairs", "Arched brass floor lamp", "High-pile wool Moroccan-style rug"]
+      "keyElements": [
+        "Bright airy spaces",
+        "Light wood tones",
+        "Plush wool and shearling throws",
+        "Functional storage",
+        "Simple geometric silhouettes"
+      ],
+      "materials": [
+        "Bleached pine",
+        "Birch",
+        "Ash",
+        "Wool",
+        "Boucle",
+        "Cotton canvas",
+        "Matte ceramic"
+      ],
+      "recommendedColors": [
+        "#F8F9FA",
+        "#E9ECEF",
+        "#DEE2E6",
+        "#6C757D",
+        "#495057",
+        "#A5A58D"
+      ],
+      "signaturePieces": [
+        "Tapered leg sofa in oat grey",
+        "Nesting round coffee tables",
+        "Wishbone dining chairs",
+        "Arched brass floor lamp",
+        "High-pile wool Moroccan-style rug"
+      ]
     },
     {
       "id": "mid_century_modern",
       "name": "Mid-Century Modern",
       "description": "Iconic 1950s-1960s aesthetic defined by sleek architectural curves, organic shapes, rich warm woods, and statement lighting.",
-      "keyElements": ["Tapered peg legs", "Walnut wood tones", "Organic sculptural curves", "Statement brass sputnik lighting", "Bold geometric accents"],
-      "materials": ["American walnut", "Teak", "Brass", "Molded plywood", "Top-grain leather", "Velvet"],
-      "recommendedColors": ["#FAF0CA", "#0D3B66", "#F4D35E", "#EE964B", "#F95738", "#2E4057"],
-      "signaturePieces": ["Tufted walnut-frame leather sofa", "Eames-style lounge chair", "Kidney-shaped coffee table", "Brass multi-arm chandelier", "Geometric flat-weave wool rug"]
+      "keyElements": [
+        "Tapered peg legs",
+        "Walnut wood tones",
+        "Organic sculptural curves",
+        "Statement brass sputnik lighting",
+        "Bold geometric accents"
+      ],
+      "materials": [
+        "American walnut",
+        "Teak",
+        "Brass",
+        "Molded plywood",
+        "Top-grain leather",
+        "Velvet"
+      ],
+      "recommendedColors": [
+        "#FAF0CA",
+        "#0D3B66",
+        "#F4D35E",
+        "#EE964B",
+        "#F95738",
+        "#2E4057"
+      ],
+      "signaturePieces": [
+        "Tufted walnut-frame leather sofa",
+        "Eames-style lounge chair",
+        "Kidney-shaped coffee table",
+        "Brass multi-arm chandelier",
+        "Geometric flat-weave wool rug"
+      ]
     },
     {
       "id": "modern_farmhouse",
       "name": "Modern Farmhouse",
       "description": "A comfortable blend of rustic countryside warmth, reclaimed timbers, and crisp contemporary contrast.",
-      "keyElements": ["Shiplap accents", "Black iron hardware", "Reclaimed wood surfaces", "Neutral slipcovered seating", "Woven basket storage"],
-      "materials": ["Distressed oak", "Matte black steel", "Washed linen", "Galvanized metal", "Jute", "Ceramic subway tile"],
-      "recommendedColors": ["#FFFFFF", "#F3F3F3", "#D8D3CD", "#7F7B74", "#2B2B2B", "#6E7565"],
-      "signaturePieces": ["Slipcovered Belgian linen sofa", "Trestle reclaimed wood dining table", "Matte black lantern pendant", "Jute area rug", "Sliding barn-door media console"]
+      "keyElements": [
+        "Shiplap accents",
+        "Black iron hardware",
+        "Reclaimed wood surfaces",
+        "Neutral slipcovered seating",
+        "Woven basket storage"
+      ],
+      "materials": [
+        "Distressed oak",
+        "Matte black steel",
+        "Washed linen",
+        "Galvanized metal",
+        "Jute",
+        "Ceramic subway tile"
+      ],
+      "recommendedColors": [
+        "#FFFFFF",
+        "#F3F3F3",
+        "#D8D3CD",
+        "#7F7B74",
+        "#2B2B2B",
+        "#6E7565"
+      ],
+      "signaturePieces": [
+        "Slipcovered Belgian linen sofa",
+        "Trestle reclaimed wood dining table",
+        "Matte black lantern pendant",
+        "Jute area rug",
+        "Sliding barn-door media console"
+      ]
     },
     {
       "id": "industrial",
       "name": "Industrial",
       "description": "Urban loft aesthetic showcasing raw architectural bones, exposed brick, distressed metals, and utilitarian character.",
-      "keyElements": ["Exposed brick and concrete", "Piping and ductwork", "Dark metal framing", "Aged vintage leather", "Edison bulb fixtures"],
-      "materials": ["Distressed leather", "Reclaimed iron", "Cast iron", "Concrete", "Reclaimed pine", "Wire glass"],
-      "recommendedColors": ["#343A40", "#495057", "#6C757D", "#8D5B4C", "#A0522D", "#C29B7F"],
-      "signaturePieces": ["Cognac leather Chesterfield sofa", "Factory cart iron coffee table", "Steel frame bookcase", "Pulley pendant light", "Distressed vintage overdyed rug"]
+      "keyElements": [
+        "Exposed brick and concrete",
+        "Piping and ductwork",
+        "Dark metal framing",
+        "Aged vintage leather",
+        "Edison bulb fixtures"
+      ],
+      "materials": [
+        "Distressed leather",
+        "Reclaimed iron",
+        "Cast iron",
+        "Concrete",
+        "Reclaimed pine",
+        "Wire glass"
+      ],
+      "recommendedColors": [
+        "#343A40",
+        "#495057",
+        "#6C757D",
+        "#8D5B4C",
+        "#A0522D",
+        "#C29B7F"
+      ],
+      "signaturePieces": [
+        "Cognac leather Chesterfield sofa",
+        "Factory cart iron coffee table",
+        "Steel frame bookcase",
+        "Pulley pendant light",
+        "Distressed vintage overdyed rug"
+      ]
     },
     {
       "id": "bohemian",
       "name": "Bohemian (Boho Modern)",
       "description": "Free-spirited, layered interior filled with lush indoor greenery, globally inspired textiles, rattan, and artisanal craft.",
-      "keyElements": ["Layered textiles", "Macrame and fringe", "Abundant houseplants", "Rattan and cane furniture", "Warm terracotta tones"],
-      "materials": ["Rattan", "Wicker", "Cane", "Jute", "Terracotta", "Vintage kilim", "Bamboo"],
-      "recommendedColors": ["#E07A5F", "#3D405B", "#81B29A", "#F2CC8F", "#F4F1DE", "#D4A373"],
-      "signaturePieces": ["Rattan peacock accent chair", "Layered kilim rugs", "Macrame plant hangers", "Live-edge wood coffee table", "Moroccan leather poufs"]
+      "keyElements": [
+        "Layered textiles",
+        "Macrame and fringe",
+        "Abundant houseplants",
+        "Rattan and cane furniture",
+        "Warm terracotta tones"
+      ],
+      "materials": [
+        "Rattan",
+        "Wicker",
+        "Cane",
+        "Jute",
+        "Terracotta",
+        "Vintage kilim",
+        "Bamboo"
+      ],
+      "recommendedColors": [
+        "#E07A5F",
+        "#3D405B",
+        "#81B29A",
+        "#F2CC8F",
+        "#F4F1DE",
+        "#D4A373"
+      ],
+      "signaturePieces": [
+        "Rattan peacock accent chair",
+        "Layered kilim rugs",
+        "Macrame plant hangers",
+        "Live-edge wood coffee table",
+        "Moroccan leather poufs"
+      ]
     },
     {
       "id": "minimalist",
       "name": "Minimalist",
       "description": "Extreme intentionality, uncluttered sightlines, high-quality materiality, and subtle textural contrast.",
-      "keyElements": ["Zero clutter", "Concealed storage", "Monochromatic palettes", "Sculptural focal points", "Maximum negative space"],
-      "materials": ["Travertine", "Polished microcement", "Matte lacquered MDF", "Boucle", "Brushed stainless steel"],
-      "recommendedColors": ["#FFFFFF", "#F5F5F5", "#E5E5E5", "#CCCCCC", "#222222"],
-      "signaturePieces": ["Floating media unit", "Travertine stone plinth coffee table", "Minimalist flush-mount linear LED", "Seamless tailored sectional", "Sculptural off-white ceramic urn"]
+      "keyElements": [
+        "Zero clutter",
+        "Concealed storage",
+        "Monochromatic palettes",
+        "Sculptural focal points",
+        "Maximum negative space"
+      ],
+      "materials": [
+        "Travertine",
+        "Polished microcement",
+        "Matte lacquered MDF",
+        "Boucle",
+        "Brushed stainless steel"
+      ],
+      "recommendedColors": [
+        "#FFFFFF",
+        "#F5F5F5",
+        "#E5E5E5",
+        "#CCCCCC",
+        "#222222"
+      ],
+      "signaturePieces": [
+        "Floating media unit",
+        "Travertine stone plinth coffee table",
+        "Minimalist flush-mount linear LED",
+        "Seamless tailored sectional",
+        "Sculptural off-white ceramic urn"
+      ]
     },
     {
       "id": "coastal",
       "name": "Coastal Modern",
       "description": "Breezy, sun-drenched style drawing inspiration from coastal shorelines with natural woven fibers, soft blues, and crisp linens.",
-      "keyElements": ["Abundant natural light", "Airy white curtains", "Seagrass and abaca textures", "Weathered driftwood tones", "Soft ocean hues"],
-      "materials": ["Bleached oak", "Linen", "Seagrass", "Capiz shell", "Rope", "Ceramic"],
-      "recommendedColors": ["#FFFFFF", "#E8F0F2", "#B8D8D8", "#7A9E9F", "#4F6367", "#EE6C4D"],
-      "signaturePieces": ["Slipcovered off-white sectional", "Woven abaca coffee table", "Beaded coastal chandelier", "Driftwood console table", "Blue-striped linen throw pillows"]
+      "keyElements": [
+        "Abundant natural light",
+        "Airy white curtains",
+        "Seagrass and abaca textures",
+        "Weathered driftwood tones",
+        "Soft ocean hues"
+      ],
+      "materials": [
+        "Bleached oak",
+        "Linen",
+        "Seagrass",
+        "Capiz shell",
+        "Rope",
+        "Ceramic"
+      ],
+      "recommendedColors": [
+        "#FFFFFF",
+        "#E8F0F2",
+        "#B8D8D8",
+        "#7A9E9F",
+        "#4F6367",
+        "#EE6C4D"
+      ],
+      "signaturePieces": [
+        "Slipcovered off-white sectional",
+        "Woven abaca coffee table",
+        "Beaded coastal chandelier",
+        "Driftwood console table",
+        "Blue-striped linen throw pillows"
+      ]
+    },
+    {
+      "id": "modern",
+      "name": "Modern",
+      "description": "Clean, uncluttered contemporary living with simple geometric forms, neutral bases and one or two confident accent colours.",
+      "keyElements": [
+        "Clean straight lines",
+        "Neutral base palette",
+        "Low-profile seating",
+        "Minimal ornament",
+        "Statement lighting",
+        "Large-format rugs"
+      ],
+      "materials": [
+        "Matte lacquer",
+        "Light oak",
+        "Metal legs",
+        "Linen and boucle",
+        "Glass",
+        "Porcelain"
+      ],
+      "recommendedColors": [
+        "#F2EFEA",
+        "#D9D3C7",
+        "#8C8C88",
+        "#2F2F2F",
+        "#6B7A5E"
+      ],
+      "signaturePieces": [
+        "Track-arm 3-seat sofa",
+        "Round coffee table with slim legs",
+        "Arched floor lamp",
+        "Low TV unit",
+        "Abstract framed wall art"
+      ]
+    },
+    {
+      "id": "classic",
+      "name": "Classic",
+      "description": "Elegant traditional style with symmetry, carved or curved details, rich fabrics and warm wood, popular in Egyptian reception rooms.",
+      "keyElements": [
+        "Symmetry",
+        "Curved and carved details",
+        "Tufted upholstery",
+        "Layered curtains",
+        "Crystal or brass lighting",
+        "Ornate mirrors"
+      ],
+      "materials": [
+        "Dark walnut",
+        "Mahogany",
+        "Velvet",
+        "Damask",
+        "Brass",
+        "Marble"
+      ],
+      "recommendedColors": [
+        "#F3EBDD",
+        "#C9B79C",
+        "#8A6D4B",
+        "#5A3E2B",
+        "#B8964E"
+      ],
+      "signaturePieces": [
+        "Chesterfield or carved-frame sofa",
+        "Marble-top coffee table",
+        "Crystal chandelier",
+        "Full-length layered curtains",
+        "Gilded wall mirror"
+      ]
     }
   ],
   "colorRules": [
@@ -152,6 +432,30 @@
       "category": "dining_room",
       "roomType": "dining_room",
       "rule": "The bottom of a dining room chandelier or pendant fixture should hang 30 to 36 inches above the surface of the dining table."
+    },
+    {
+      "name": "Sun Control for Egyptian Apartments",
+      "category": "windows",
+      "roomType": "all",
+      "rule": "Strong sun in Egypt fades fabrics and heats rooms. Use lined or blackout curtains on south and west windows, hang the rod 15-20 cm above the window frame and extend it 20-30 cm on each side so curtains open fully."
+    },
+    {
+      "name": "Dust-Friendly Materials",
+      "category": "maintenance",
+      "roomType": "all",
+      "rule": "In dusty climates prefer closed storage over open shelving, removable washable cushion covers, and low-pile rugs that are easy to vacuum."
+    },
+    {
+      "name": "Small Apartment Scale",
+      "category": "layout",
+      "roomType": "all",
+      "rule": "In rooms under 15 square metres choose furniture with visible legs, a sofa no deeper than 90 cm, a round coffee table to ease movement, and keep at least 75-90 cm for main walkways."
+    },
+    {
+      "name": "Bedroom Clearances",
+      "category": "layout",
+      "roomType": "bedroom",
+      "rule": "Leave at least 60 cm on both sides of the bed and 90 cm in front of the wardrobe so doors and drawers open comfortably. Nightstands should be within 5 cm of mattress height."
     }
   ],
   "safetyAndOccupantRules": [
@@ -171,41 +475,179 @@
   "budgetAllocationModels": {
     "living_room": {
       "categories": [
-        { "category": "Seating (Sofa / Sectional / Accent Chairs)", "minPercent": 35, "maxPercent": 45, "defaultPercent": 40, "priority": 1 },
-        { "category": "Tables & Storage (Coffee Table, Side Tables, Media Console)", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
-        { "category": "Area Rug & Window Treatments", "minPercent": 12, "maxPercent": 18, "defaultPercent": 15, "priority": 3 },
-        { "category": "Lighting (Floor, Table, Ceiling Fixtures)", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 4 },
-        { "category": "Wall Art, Mirrors & Decorative Accents", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 5 },
-        { "category": "Contingency / Taxes / Shipping", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 6 }
+        {
+          "category": "Seating (Sofa / Sectional / Accent Chairs)",
+          "minPercent": 35,
+          "maxPercent": 45,
+          "defaultPercent": 40,
+          "priority": 1
+        },
+        {
+          "category": "Tables & Storage (Coffee Table, Side Tables, Media Console)",
+          "minPercent": 15,
+          "maxPercent": 25,
+          "defaultPercent": 20,
+          "priority": 2
+        },
+        {
+          "category": "Area Rug & Window Treatments",
+          "minPercent": 12,
+          "maxPercent": 18,
+          "defaultPercent": 15,
+          "priority": 3
+        },
+        {
+          "category": "Lighting (Floor, Table, Ceiling Fixtures)",
+          "minPercent": 8,
+          "maxPercent": 14,
+          "defaultPercent": 10,
+          "priority": 4
+        },
+        {
+          "category": "Wall Art, Mirrors & Decorative Accents",
+          "minPercent": 8,
+          "maxPercent": 14,
+          "defaultPercent": 10,
+          "priority": 5
+        },
+        {
+          "category": "Contingency / Taxes / Shipping",
+          "minPercent": 5,
+          "maxPercent": 10,
+          "defaultPercent": 5,
+          "priority": 6
+        }
       ]
     },
     "bedroom": {
       "categories": [
-        { "category": "Bed Frame & Mattress / Headboard", "minPercent": 40, "maxPercent": 50, "defaultPercent": 45, "priority": 1 },
-        { "category": "Nightstands & Dresser / Storage", "minPercent": 20, "maxPercent": 30, "defaultPercent": 25, "priority": 2 },
-        { "category": "Bedding & Area Rug", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
-        { "category": "Lighting (Bedside Lamps / Sconces / Overhead)", "minPercent": 6, "maxPercent": 12, "defaultPercent": 8, "priority": 4 },
-        { "category": "Curtains, Mirrors & Wall Decor", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 5 },
-        { "category": "Contingency / Delivery", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 6 }
+        {
+          "category": "Bed Frame & Mattress / Headboard",
+          "minPercent": 40,
+          "maxPercent": 50,
+          "defaultPercent": 45,
+          "priority": 1
+        },
+        {
+          "category": "Nightstands & Dresser / Storage",
+          "minPercent": 20,
+          "maxPercent": 30,
+          "defaultPercent": 25,
+          "priority": 2
+        },
+        {
+          "category": "Bedding & Area Rug",
+          "minPercent": 10,
+          "maxPercent": 18,
+          "defaultPercent": 12,
+          "priority": 3
+        },
+        {
+          "category": "Lighting (Bedside Lamps / Sconces / Overhead)",
+          "minPercent": 6,
+          "maxPercent": 12,
+          "defaultPercent": 8,
+          "priority": 4
+        },
+        {
+          "category": "Curtains, Mirrors & Wall Decor",
+          "minPercent": 5,
+          "maxPercent": 10,
+          "defaultPercent": 5,
+          "priority": 5
+        },
+        {
+          "category": "Contingency / Delivery",
+          "minPercent": 5,
+          "maxPercent": 10,
+          "defaultPercent": 5,
+          "priority": 6
+        }
       ]
     },
     "home_office": {
       "categories": [
-        { "category": "Ergonomic Desk & Chair", "minPercent": 45, "maxPercent": 55, "defaultPercent": 50, "priority": 1 },
-        { "category": "Bookshelf & Storage Solutions", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
-        { "category": "Task & Ambient Lighting", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
-        { "category": "Area Rug & Window Blinds", "minPercent": 8, "maxPercent": 14, "defaultPercent": 10, "priority": 4 },
-        { "category": "Wall Art & Cable Management / Accessories", "minPercent": 5, "maxPercent": 10, "defaultPercent": 5, "priority": 5 },
-        { "category": "Contingency / Shipping", "minPercent": 3, "maxPercent": 8, "defaultPercent": 3, "priority": 6 }
+        {
+          "category": "Ergonomic Desk & Chair",
+          "minPercent": 45,
+          "maxPercent": 55,
+          "defaultPercent": 50,
+          "priority": 1
+        },
+        {
+          "category": "Bookshelf & Storage Solutions",
+          "minPercent": 15,
+          "maxPercent": 25,
+          "defaultPercent": 20,
+          "priority": 2
+        },
+        {
+          "category": "Task & Ambient Lighting",
+          "minPercent": 10,
+          "maxPercent": 18,
+          "defaultPercent": 12,
+          "priority": 3
+        },
+        {
+          "category": "Area Rug & Window Blinds",
+          "minPercent": 8,
+          "maxPercent": 14,
+          "defaultPercent": 10,
+          "priority": 4
+        },
+        {
+          "category": "Wall Art & Cable Management / Accessories",
+          "minPercent": 5,
+          "maxPercent": 10,
+          "defaultPercent": 5,
+          "priority": 5
+        },
+        {
+          "category": "Contingency / Shipping",
+          "minPercent": 3,
+          "maxPercent": 8,
+          "defaultPercent": 3,
+          "priority": 6
+        }
       ]
     },
     "dining_room": {
       "categories": [
-        { "category": "Dining Table & Chairs Set", "minPercent": 50, "maxPercent": 60, "defaultPercent": 55, "priority": 1 },
-        { "category": "Buffet / Credenza / Sideboard", "minPercent": 15, "maxPercent": 25, "defaultPercent": 20, "priority": 2 },
-        { "category": "Pendant Chandelier Lighting", "minPercent": 10, "maxPercent": 18, "defaultPercent": 12, "priority": 3 },
-        { "category": "Area Rug & Curtains", "minPercent": 6, "maxPercent": 12, "defaultPercent": 8, "priority": 4 },
-        { "category": "Centerpiece & Wall Art", "minPercent": 3, "maxPercent": 8, "defaultPercent": 5, "priority": 5 }
+        {
+          "category": "Dining Table & Chairs Set",
+          "minPercent": 50,
+          "maxPercent": 60,
+          "defaultPercent": 55,
+          "priority": 1
+        },
+        {
+          "category": "Buffet / Credenza / Sideboard",
+          "minPercent": 15,
+          "maxPercent": 25,
+          "defaultPercent": 20,
+          "priority": 2
+        },
+        {
+          "category": "Pendant Chandelier Lighting",
+          "minPercent": 10,
+          "maxPercent": 18,
+          "defaultPercent": 12,
+          "priority": 3
+        },
+        {
+          "category": "Area Rug & Curtains",
+          "minPercent": 6,
+          "maxPercent": 12,
+          "defaultPercent": 8,
+          "priority": 4
+        },
+        {
+          "category": "Centerpiece & Wall Art",
+          "minPercent": 3,
+          "maxPercent": 8,
+          "defaultPercent": 5,
+          "priority": 5
+        }
       ]
     }
   }

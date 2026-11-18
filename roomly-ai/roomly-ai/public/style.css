@@ -892,3 +892,32 @@ h1, h2, h3, h4, .brand-text {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Conversation-driven flow (design brief, real products, errors) ===== */
+.brief-list { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.brief-row { display: flex; gap: 8px; align-items: flex-start; }
+.brief-key { min-width: 92px; color: var(--text-muted); }
+.brief-val { color: var(--text-main); font-weight: 600; }
+.brief-val.missing { color: var(--text-muted); font-weight: 400; font-style: italic; }
+.chip { display: inline-block; padding: 2px 9px; margin: 0 4px 4px 0; border-radius: 999px; font-size: 11px;
+  border: 1px solid var(--border-color); background: rgba(212, 163, 115, 0.1); color: var(--text-main); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.item-group { margin-bottom: 18px; }
+.item-group-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.item-group-head h4 { margin: 0; font-size: 14px; }
+.item-group-head small { color: var(--text-muted); }
+.product-row { cursor: pointer; }
+.product-row input[type="radio"] { width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
+.product-thumb { width: 64px; height: 64px; object-fit: contain; border-radius: 6px; background: #fff; flex-shrink: 0; }
+.product-row.skip-row { justify-content: flex-start; color: var(--text-muted); font-size: 12px; }
+.badge-store { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-inline-end: 6px;
+  background: rgba(88, 166, 255, 0.12); color: var(--accent-blue); border: 1px solid rgba(88, 166, 255, 0.3); }
+.over-budget { color: var(--accent-coral) !important; }
+
+.notice { padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px; }
+.notice.warn { background: rgba(227, 179, 65, 0.12); border: 1px solid rgba(227, 179, 65, 0.4); }
+.notice.error { background: rgba(247, 129, 102, 0.12); border: 1px solid rgba(247, 129, 102, 0.4); }
+.palette { display: flex; gap: 6px; margin-top: 6px; }
+.palette span { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border-color); }
+.typing { opacity: 0.7; font-style: italic; }

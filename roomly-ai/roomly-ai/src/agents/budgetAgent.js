@@ -1,122 +1,89 @@
-const fs = require('fs');
-const path = require('path');
+// Budget agent: splits the user's EGP budget across the items they asked for.
+// Each item gets a share by weight, a realistic price range, and a search query built from the style and colours.
 const db = require('../storage/database');
+const { ITEMS, itemLabel } = require('../knowledge/items');
+
+const RESERVE_SHARE = 0.05; // kept aside for delivery and small extras
+
+const STYLE_WORDS = {
+  modern: 'modern', classic: 'classic', minimalist: 'minimalist', scandinavian: 'scandinavian', japandi: 'wooden minimalist',
+  bohemian: 'boho', industrial: 'industrial metal', mid_century_modern: 'mid century', modern_farmhouse: 'farmhouse wooden', coastal: 'light'
+};
+// Items where colour matters in the search
+const COLOR_ITEMS = new Set(['sofa', 'armchair', 'rug', 'curtains', 'bedding', 'office_chair', 'dining_chair']);
+
+function searchQuery(key, prefs) {
+  const item = ITEMS[key];
+  const style = STYLE_WORDS[prefs.preferredStyle] || '';
+  const color = COLOR_ITEMS.has(key) ? (prefs.colors || []).find(c => c !== 'neutral') || '' : '';
+  return [style, color, item.search].filter(Boolean).join(' ').trim();
+}
+
+function allocate(prefs) {
+  const total = Number(prefs.budget);
+  if (!Number.isFinite(total) || total <= 0) throw new Error('Budget is missing from the design brief.');
+  const keys = (prefs.items || []).filter(k => ITEMS[k]);
+  if (!keys.length) throw new Error('No items in the design brief.');
+
+  const spendable = Math.round(total * (1 - RESERVE_SHARE));
+  const weightSum = keys.reduce((s, k) => s + ITEMS[k].weight, 0);
+  const lang = prefs.language === 'ar' ? 'ar' : 'en';
+
+  const allocations = keys
+    .map(key => {
+      const item = ITEMS[key];
+      const share = item.weight / weightSum;
+      const allocatedAmount = Math.round(spendable * share);
+      const underfunded = allocatedAmount < item.minEGP;
+      return {
+        itemKey: key,
+        category: key,
+        label: itemLabel(key, lang),
+        labelEn: item.en,
+        labelAr: item.ar,
+        percentage: Math.round(share * 100),
+        allocatedAmount,
+        priority: item.big ? 1 : 2,
+        underfunded,
+        targetPriceRange: {
+          min: Math.round(Math.max(item.minEGP, allocatedAmount * 0.3)),
+          max: Math.round(underfunded ? item.minEGP * 1.8 : allocatedAmount * 1.3)
+        },
+        searchQuery: searchQuery(key, prefs)
+      };
+    })
+    .sort((a, b) => a.priority - b.priority || b.allocatedAmount - a.allocatedAmount);
+
+  return {
+    totalBudget: total,
+    currency: 'EGP',
+    spendable,
+    reserveFund: total - spendable,
+    allocatedTotal: allocations.reduce((s, a) => s + a.allocatedAmount, 0),
+    roomType: prefs.roomType,
+    underfundedItems: allocations.filter(a => a.underfunded).map(a => a.itemKey),
+    allocations,
+    search_queries: allocations.map(a => ({
+      category: a.itemKey,
+      query: a.searchQuery,
+      targetPrice: a.allocatedAmount,
+      minPrice: a.targetPriceRange.min,
+      maxPrice: a.targetPriceRange.max,
+      currency: 'EGP'
+    }))
+  };
+}
 
 class BudgetAgent {
-  constructor() {
-    this.kbPath = path.join(__dirname, '../knowledge/knowledgeBase.json');
-    this.kb = null;
-    this.loadKB();
-  }
-
-  loadKB() {
-    if (fs.existsSync(this.kbPath)) {
-      this.kb = JSON.parse(fs.readFileSync(this.kbPath, 'utf-8'));
-    }
-  }
-
   allocateBudget(sessionId) {
-    if (!this.kb) this.loadKB();
-
-    const preferences = db.getPreferences(sessionId) || {};
-    const ragContext = db.getRAGContext(sessionId);
-    const vision = db.getVisionAnalysis(sessionId);
-
-    const totalBudget = Number(preferences.budget) || 3000;
-    const roomType = preferences.roomType || 'living_room';
-    const styleName = ragContext?.retrievedStyle?.name || 'Japandi';
-    const mustKeep = (preferences.mustKeepFurniture || []).map(f => f.toLowerCase());
-
-    console.log(`[Budget Agent] Calculating deterministic budget allocation for $${totalBudget} (${roomType})...`);
-
-    const model = this.kb?.budgetAllocationModels?.[roomType] || this.kb?.budgetAllocationModels?.['living_room'];
-    const baseCategories = model.categories;
-
-    // Filter or adjust if user has must-keep furniture
-    let adjustedCategories = baseCategories.map(cat => {
-      let weight = cat.defaultPercent;
-      let shouldExclude = false;
-
-      if (mustKeep.some(k => cat.category.toLowerCase().includes(k))) {
-        weight = 0; // Don't budget for kept items
-        shouldExclude = true;
-      }
-      return { ...cat, activeWeight: weight, shouldExclude };
-    }).filter(c => !c.shouldExclude);
-
-    // Normalize weights to sum to 100%
-    const totalWeight = adjustedCategories.reduce((sum, c) => sum + c.activeWeight, 0);
-    const allocations = [];
-    const searchQueries = [];
-    let allocatedSum = 0;
-
-    adjustedCategories.forEach(cat => {
-      const normalizedPercent = Math.round((cat.activeWeight / totalWeight) * 100);
-      const allocatedAmount = Math.round((totalBudget * normalizedPercent) / 100);
-      allocatedSum += allocatedAmount;
-
-      const minPrice = Math.round(allocatedAmount * 0.7);
-      const maxPrice = Math.round(allocatedAmount * 1.15);
-
-      // Generate targeted search query based on category, style, and room type
-      let queryCategoryTerm = '';
-      if (cat.category.toLowerCase().includes('seating') || cat.category.toLowerCase().includes('sofa')) {
-        queryCategoryTerm = `${styleName} neutral fabric tailored sofa oak base`;
-      } else if (cat.category.toLowerCase().includes('table') || cat.category.toLowerCase().includes('coffee')) {
-        queryCategoryTerm = `${styleName} natural wood round coffee table`;
-      } else if (cat.category.toLowerCase().includes('rug')) {
-        queryCategoryTerm = `${styleName} large wool flatweave area rug 8x10 neutral`;
-      } else if (cat.category.toLowerCase().includes('lighting')) {
-        queryCategoryTerm = `${styleName} architectural arched floor lamp warm light`;
-      } else if (cat.category.toLowerCase().includes('art') || cat.category.toLowerCase().includes('decor')) {
-        queryCategoryTerm = `${styleName} minimalist textured framed canvas art set`;
-      } else if (cat.category.toLowerCase().includes('desk') || cat.category.toLowerCase().includes('chair')) {
-        queryCategoryTerm = `${styleName} solid oak ergonomic study desk`;
-      } else if (cat.category.toLowerCase().includes('bed')) {
-        queryCategoryTerm = `${styleName} low platform upholstered bed frame oak`;
-      } else {
-        queryCategoryTerm = `${styleName} ${cat.category.split('(')[0].trim()}`;
-      }
-
-      allocations.push({
-        category: cat.category,
-        percentage: normalizedPercent,
-        allocatedAmount,
-        priority: cat.priority,
-        targetPriceRange: {
-          min: minPrice,
-          max: maxPrice
-        },
-        searchQuery: queryCategoryTerm
-      });
-
-      if (!cat.category.toLowerCase().includes('contingency')) {
-        searchQueries.push({
-          category: cat.category,
-          query: queryCategoryTerm,
-          targetPrice: allocatedAmount,
-          maxPrice: maxPrice,
-          currency: preferences.currency || 'USD'
-        });
-      }
-    });
-
-    // Calculate reserve / contingency
-    const reserveFund = Math.max(0, totalBudget - allocatedSum);
-
-    const budgetResult = {
-      totalBudget,
-      currency: preferences.currency || 'USD',
-      allocatedTotal: allocatedSum,
-      reserveFund,
-      roomType,
-      allocations,
-      search_queries: searchQueries
-    };
-
-    db.saveBudgetAllocation(sessionId, budgetResult);
-    return budgetResult;
+    const prefs = db.getPreferences(sessionId) || {};
+    const result = allocate(prefs);
+    console.log(`[Budget Agent] ${result.totalBudget} EGP across ${result.allocations.length} items (${result.reserveFund} EGP reserve)`);
+    db.saveBudgetAllocation(sessionId, result);
+    return result;
   }
 }
 
 module.exports = new BudgetAgent();
+module.exports.allocate = allocate;
+module.exports.searchQuery = searchQuery;

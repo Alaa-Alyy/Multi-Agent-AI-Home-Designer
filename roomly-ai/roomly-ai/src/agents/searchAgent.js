@@ -1,282 +1,220 @@
+// Search agent: finds real products sold in Egypt, in EGP, for every item in the budget.
+// Providers: IKEA Egypt (public site search, no key) and Amazon.eg (through SerpAPI).
+// Every product is filtered for price, relevance (is it really a sofa, or a sofa cover?) and stock,
+// and its product page is opened to confirm the link works before it is shown to the user.
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 const db = require('../storage/database');
+const ai = require('../ai/cloudflare');
+const { ITEMS } = require('../knowledge/items');
+
+const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
+const CACHE_TTL_MS = { ikea: 6 * 3600e3, amazon: 24 * 3600e3 };
+const PER_ITEM_RESULTS = 6;
+
+// ---------- cache (protects the 250 free SerpAPI searches a month) ----------
+function cacheDir() {
+  const dir = path.join(db.storageDir, 'cache', 'search');
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+function cacheGet(provider, query) {
+  const file = path.join(cacheDir(), `${provider}_${crypto.createHash('sha1').update(query).digest('hex')}.json`);
+  if (!fs.existsSync(file)) return null;
+  const entry = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  return Date.now() - entry.savedAt < CACHE_TTL_MS[provider] ? entry.results : null;
+}
+function cacheSet(provider, query, results) {
+  const file = path.join(cacheDir(), `${provider}_${crypto.createHash('sha1').update(query).digest('hex')}.json`);
+  fs.writeFileSync(file, JSON.stringify({ savedAt: Date.now(), query, results }));
+}
+
+// ---------- providers ----------
+const ikea = {
+  name: 'ikea',
+  site: 'IKEA Egypt',
+  enabled: () => true,
+  async search(query) {
+    const cached = cacheGet('ikea', query);
+    if (cached) return cached;
+    const url = `https://sik.search.blue.cdtapps.com/eg/en/search-result-page?q=${encodeURIComponent(query)}&size=24&types=PRODUCT`;
+    const res = await fetch(url, { headers: { 'User-Agent': BROWSER_UA }, signal: AbortSignal.timeout(20000) });
+    if (!res.ok) throw new Error(`IKEA search HTTP ${res.status}`);
+    const data = await res.json();
+    const items = data?.searchResultPage?.products?.main?.items || [];
+    const results = items.map(it => it.product).filter(Boolean).map(p => ({
+      id: `ikea_${p.id}`,
+      title: [p.name, p.typeName, p.validDesignText].filter(Boolean).join(' — '),
+      price: Number(p.salesPrice?.numeral) || null,
+      currency: p.salesPrice?.currencyCode || 'EGP',
+      image_url: p.mainImageUrl || p.contextualImageUrl || '',
+      product_url: p.pipUrl,
+      site: 'IKEA Egypt',
+      source: 'ikea',
+      rating: p.ratingValue ? Number(p.ratingValue) : null,
+      reviewsCount: p.ratingCount || 0,
+      colors: (p.colors || []).map(c => c.name),
+      categoryHint: [p.typeName, ...(p.categoryPath || []).map(c => c.name)].join(' / '),
+      inStock: p.onlineSellable !== false && !(p.availability || []).some(a => /OUT_OF_STOCK/.test(a.status || ''))
+    }));
+    cacheSet('ikea', query, results);
+    return results;
+  }
+};
+
+const amazon = {
+  name: 'amazon',
+  site: 'Amazon.eg',
+  enabled: () => Boolean(process.env.SERPAPI_API_KEY),
+  async search(query) {
+    const cached = cacheGet('amazon', query);
+    if (cached) return cached;
+    const params = new URLSearchParams({ engine: 'amazon', amazon_domain: 'amazon.eg', k: query, language: 'en_AE', api_key: process.env.SERPAPI_API_KEY });
+    const res = await fetch(`https://serpapi.com/search.json?${params}`, { signal: AbortSignal.timeout(40000) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) throw new Error(`Amazon search: ${data.error || `HTTP ${res.status}`}`);
+    const results = (data.organic_results || []).filter(r => r.asin).map(r => ({
+      id: `amazon_${r.asin}`,
+      title: r.title || '',
+      price: Number(r.extracted_price) || null,
+      currency: 'EGP',
+      image_url: (r.thumbnail || '').replace(/\._AC_[^.]+_\./, '._AC_SL800_.'),
+      product_url: `https://www.amazon.eg/-/en/dp/${r.asin}`,
+      site: 'Amazon.eg',
+      source: 'amazon',
+      rating: r.rating ? Number(r.rating) : null,
+      reviewsCount: Number(r.reviews) || 0,
+      sponsored: Boolean(r.sponsored),
+      delivery: Array.isArray(r.delivery) ? r.delivery.join(' · ') : '',
+      categoryHint: '',
+      inStock: true
+    }));
+    cacheSet('amazon', query, results);
+    return results;
+  }
+};
+
+const PROVIDERS = [ikea, amazon];
+
+// ---------- relevance: is each result really the item we asked for? ----------
+const RELEVANCE_SCHEMA = {
+  type: 'object',
+  properties: { matching: { type: 'array', items: { type: 'integer' } } },
+  required: ['matching']
+};
+
+async function filterRelevant(itemKey, products) {
+  if (!products.length) return [];
+  const item = ITEMS[itemKey];
+  const list = products.map((p, i) => `${i}. ${p.title}${p.categoryHint ? ` [${p.categoryHint}]` : ''}`).join('\n');
+  try {
+    const out = await ai.chat([
+      { role: 'system', content: 'You check online shop search results. Reply with JSON only.' },
+      { role: 'user', content: `Wanted: a ${item.en.toLowerCase()} (${item.search}) to furnish a room.
+Return the numbers of results that ARE a complete ${item.en.toLowerCase()} itself.
+Exclude covers, cushions, legs, spare parts, accessories, toys, miniatures, stickers, and different furniture.
+Results:
+${list}` }
+    ], { schema: RELEVANCE_SCHEMA, temperature: 0, maxTokens: 200, model: ai.MODELS.fast });
+    const keep = new Set((out.matching || []).filter(i => Number.isInteger(i)));
+    return products.filter((_, i) => keep.has(i));
+  } catch (err) {
+    console.warn(`[Search Agent] Relevance check failed for ${itemKey}: ${err.message}. Using price filter only.`);
+    return products;
+  }
+}
+
+// ---------- link check: open the product page ----------
+async function verifyLink(product) {
+  try {
+    const res = await fetch(product.product_url, {
+      headers: { 'User-Agent': BROWSER_UA, 'Accept-Language': 'en' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!res.ok) return { ok: false, status: res.status };
+    if (product.source === 'amazon') {
+      const html = await res.text();
+      if (/Currently unavailable|غير متوفر حاليًا|غير متوفر حاليا/i.test(html)) return { ok: false, status: 'unavailable' };
+    } else {
+      res.body?.cancel?.();
+    }
+    return { ok: true, status: res.status };
+  } catch (err) {
+    return { ok: false, status: err.name === 'TimeoutError' ? 'timeout' : 'error' };
+  }
+}
 
 class SearchAgent {
-  constructor() {
-    this.providers = {
-      serpapi: new SerpApiProvider(),
-      rainforest: new RainforestProvider(),
-      rapidapi: new RapidApiProvider(),
-      affiliate: new AffiliateFeedProvider()
-    };
-  }
-
   getActiveProvider() {
-    if (process.env.SERPAPI_API_KEY && process.env.SERPAPI_API_KEY.trim() !== '') {
-      return { name: 'serpapi', instance: this.providers.serpapi, key: process.env.SERPAPI_API_KEY };
-    }
-    if (process.env.RAINFOREST_API_KEY && process.env.RAINFOREST_API_KEY.trim() !== '') {
-      return { name: 'rainforest', instance: this.providers.rainforest, key: process.env.RAINFOREST_API_KEY };
-    }
-    if (process.env.RAPIDAPI_KEY && process.env.RAPIDAPI_KEY.trim() !== '') {
-      return { name: 'rapidapi', instance: this.providers.rapidapi, key: process.env.RAPIDAPI_KEY };
-    }
-    return { name: 'none', instance: null, key: null };
+    const active = PROVIDERS.filter(p => p.enabled()).map(p => p.name);
+    return { name: active.join('+') || 'none', providers: active };
   }
 
-  // Deterministic URL Validation
-  validateProductUrl(url, expectedSite = null) {
-    if (!url || typeof url !== 'string') return { isValid: false, reason: 'URL missing' };
-    const trimmed = url.trim();
+  async searchItem(alloc) {
+    const item = ITEMS[alloc.itemKey];
+    const { min, max } = alloc.targetPriceRange;
+    // IKEA names products differently, so it gets a simpler query
+    const queries = {
+      ikea: alloc.searchQuery.replace(/\b(modern|classic|minimalist|scandinavian|boho|industrial|mid century|farmhouse|wooden|light)\b/gi, '').replace(/\s+/g, ' ').trim() || item.search,
+      amazon: alloc.searchQuery
+    };
 
-    try {
-      const parsed = new URL(trimmed);
-      if (!['http:', 'https:'].includes(parsed.protocol)) {
-        return { isValid: false, reason: 'Invalid protocol' };
+    const raw = [];
+    const errors = [];
+    for (const provider of PROVIDERS.filter(p => p.enabled())) {
+      try {
+        raw.push(...await provider.search(queries[provider.name]));
+      } catch (err) {
+        errors.push({ provider: provider.name, error: err.message });
       }
-
-      // Check if it's just a root homepage
-      const pathname = parsed.pathname.replace(/\/+$/, '');
-      if (!pathname || pathname === '' || pathname === '/') {
-        return { isValid: false, reason: 'Root homepage is not a valid product page' };
-      }
-
-      // Reject generic search result queries passed as product pages
-      if (pathname.includes('/search') || pathname.includes('/find') || pathname.includes('/results') || pathname === '/s') {
-        return { isValid: false, reason: 'Search page is not an exact product page' };
-      }
-
-      // Check for valid product indicators in URL path
-      const isLikelyProduct = 
-        pathname.includes('/p/') ||
-        pathname.includes('/products/') ||
-        pathname.includes('/product/') ||
-        pathname.includes('/item/') ||
-        pathname.includes('/dp/') ||
-        pathname.includes('/gp/product/') ||
-        pathname.includes('/catalog/') ||
-        pathname.split('/').filter(Boolean).length >= 2;
-
-      if (isLikelyProduct) {
-        return { isValid: true, sanitizedUrl: trimmed };
-      }
-
-      return { isValid: false, reason: 'Lacks canonical product page path' };
-    } catch (e) {
-      return { isValid: false, reason: 'Malformed URL' };
     }
+
+    // 1) price in range and in stock
+    const priced = raw.filter(p => p.price && p.currency === 'EGP' && p.price >= min && p.price <= max && p.inStock);
+    // 2) really the item we want
+    const relevant = await filterRelevant(alloc.itemKey, priced.slice(0, 30));
+    // 3) closest to the item's budget first, alternating stores so the user sees both
+    const byStore = {};
+    relevant
+      .sort((a, b) => Math.abs(a.price - alloc.allocatedAmount) - Math.abs(b.price - alloc.allocatedAmount))
+      .forEach(p => (byStore[p.source] = byStore[p.source] || []).push(p));
+    const mixed = [];
+    const queues = Object.values(byStore);
+    while (queues.some(q => q.length)) queues.forEach(q => q.length && mixed.push(q.shift()));
+    // 4) open the best candidates and keep only working pages
+    const candidates = mixed.slice(0, PER_ITEM_RESULTS + 3);
+    const checks = await Promise.all(candidates.map(verifyLink));
+    const verified = candidates
+      .map((p, i) => ({ ...p, category: alloc.itemKey, linkCheck: { ...checks[i], checkedAt: new Date().toISOString() } }))
+      .filter(p => p.linkCheck.ok)
+      .slice(0, PER_ITEM_RESULTS);
+
+    console.log(`[Search Agent] ${alloc.itemKey}: ${raw.length} found → ${priced.length} in price range → ${relevant.length} relevant → ${verified.length} verified`);
+    return { itemKey: alloc.itemKey, queries, counts: { found: raw.length, inRange: priced.length, relevant: relevant.length, verified: verified.length }, products: verified, errors };
   }
 
   async searchProductsForAllocations(sessionId) {
-    const budgetAllocation = db.getBudgetAllocation(sessionId);
-    if (!budgetAllocation) {
-      throw new Error('No budget allocation found. Budget Agent must run before Search Agent.');
-    }
+    const budget = db.getBudgetAllocation(sessionId);
+    if (!budget) throw new Error('No budget allocation found. Budget Agent must run before Search Agent.');
 
-    const queries = budgetAllocation.search_queries || [];
-    const activeProvider = this.getActiveProvider();
+    const perItem = [];
+    for (const alloc of budget.allocations) perItem.push(await this.searchItem(alloc));
 
-    console.log(`[Search Agent] Active Search Provider: ${activeProvider.name.toUpperCase()}`);
-
-    if (activeProvider.name === 'none') {
-      const searchResult = {
-        status: 'CREDENTIAL_REQUIRED',
-        provider: 'none',
-        message: 'No live Product Search API key configured. Search Agent is fully built and credential-ready. To search live retail products automatically, configure SERPAPI_API_KEY, RAINFOREST_API_KEY, or RAPIDAPI_KEY in .env.',
-        requiredCredentials: [
-          { envVar: 'SERPAPI_API_KEY', description: 'SerpAPI for Google Shopping live search with exact product page URLs across West Elm, CB2, IKEA, Target, Wayfair' },
-          { envVar: 'RAINFOREST_API_KEY', description: 'Rainforest API for real-time Amazon product catalog search with ASIN-direct links' },
-          { envVar: 'RAPIDAPI_KEY', description: 'RapidAPI for retail merchant and furniture inventory APIs' }
-        ],
-        queriesExecuted: queries,
-        products: []
-      };
-
-      db.saveProductSearch(sessionId, searchResult);
-      return searchResult;
-    }
-
-    // When credentials are provided, query the live provider
-    const collectedProducts = [];
-    const executionErrors = [];
-
-    for (const queryItem of queries) {
-      try {
-        console.log(`[Search Agent] Querying live provider ${activeProvider.name} for "${queryItem.query}" (Target: $${queryItem.targetPrice})...`);
-        const rawResults = await activeProvider.instance.search(queryItem.query, activeProvider.key, {
-          maxPrice: queryItem.maxPrice,
-          category: queryItem.category
-        });
-
-        const normalized = rawResults.map(item => this.normalizeProduct(item, queryItem.category, activeProvider.name));
-        collectedProducts.push(...normalized);
-      } catch (err) {
-        console.error(`[Search Agent] Search failed for query "${queryItem.query}":`, err.message);
-        executionErrors.push({ query: queryItem.query, error: err.message });
-      }
-    }
-
-    const searchResult = {
-      status: executionErrors.length > 0 && collectedProducts.length === 0 ? 'SEARCH_FAILED' : 'SUCCESS',
-      provider: activeProvider.name,
-      totalFound: collectedProducts.length,
-      queriesExecuted: queries,
-      products: collectedProducts,
-      errors: executionErrors
+    const products = perItem.flatMap(r => r.products);
+    const result = {
+      status: products.length ? 'SUCCESS' : 'NO_RESULTS',
+      provider: this.getActiveProvider().name,
+      totalFound: products.length,
+      perItem: perItem.map(({ products: p, ...rest }) => rest),
+      products,
+      searchedAt: new Date().toISOString()
     };
-
-    db.saveProductSearch(sessionId, searchResult);
-    return searchResult;
-  }
-
-  // Canonical Product Normalization Contract
-  normalizeProduct(raw, category, providerName) {
-    const rawUrl = raw.product_url || raw.link || raw.url || '';
-    const rawCanonical = raw.canonical_url || null;
-
-    // Validate raw URL
-    let validatedUrl = null;
-    let urlValidation = this.validateProductUrl(rawUrl);
-
-    if (urlValidation.isValid) {
-      validatedUrl = urlValidation.sanitizedUrl;
-    } else if (rawCanonical) {
-      const canonValidation = this.validateProductUrl(rawCanonical);
-      if (canonValidation.isValid) validatedUrl = canonValidation.sanitizedUrl;
-    }
-
-    return {
-      id: raw.id || raw.product_id || `prod_${Math.random().toString(36).substring(2, 9)}`,
-      title: (raw.title || raw.name || '').trim(),
-      category: category,
-      price: typeof raw.price === 'number' ? raw.price : parseFloat(String(raw.price || 0).replace(/[^0-9.]/g, '')),
-      currency: raw.currency || 'USD',
-      image_url: raw.image_url || raw.thumbnail || raw.image || '',
-      product_url: validatedUrl,
-      canonical_url: rawCanonical || validatedUrl,
-      site: raw.site || raw.source || raw.merchant || providerName,
-      rating: parseFloat(raw.rating || raw.reviews_rating || 0) || null,
-      reviewsCount: parseInt(raw.reviews_count || raw.total_reviews || 0, 10) || 0,
-      dimensions: raw.dimensions || { widthIn: null, heightIn: null, depthIn: null },
-      source: providerName
-    };
-  }
-}
-
-// 1. SerpAPI (Google Shopping Provider)
-class SerpApiProvider {
-  async search(query, apiKey, options = {}) {
-    const params = new URLSearchParams({
-      engine: 'google_shopping',
-      q: query,
-      api_key: apiKey,
-      num: '8',
-      gl: 'us',
-      hl: 'en'
-    });
-
-    if (options.maxPrice) {
-      params.append('tbs', `p_ord:r,price:1,ppr_max:${options.maxPrice}`);
-    }
-
-    const res = await fetch(`https://serpapi.com/search.json?${params.toString()}`);
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`SerpAPI error (${res.status}): ${err}`);
-    }
-
-    const data = await res.json();
-    const results = data.shopping_results || [];
-
-    return results.map(item => ({
-      id: item.product_id || item.position,
-      title: item.title,
-      price: item.extracted_price || item.price,
-      currency: 'USD',
-      image_url: item.thumbnail,
-      product_url: item.link || item.product_link,
-      canonical_url: item.link || item.product_link,
-      site: item.source || 'Google Shopping',
-      rating: item.rating || null,
-      reviewsCount: item.reviews || 0,
-      dimensions: {}
-    }));
-  }
-}
-
-// 2. Rainforest API (Amazon Product Search Provider)
-class RainforestProvider {
-  async search(query, apiKey, options = {}) {
-    const params = new URLSearchParams({
-      api_key: apiKey,
-      type: 'search',
-      amazon_domain: 'amazon.com',
-      search_term: query
-    });
-
-    const res = await fetch(`https://api.rainforestapi.com/request?${params.toString()}`);
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Rainforest API error (${res.status}): ${err}`);
-    }
-
-    const data = await res.json();
-    const results = data.search_results || [];
-
-    return results.map(item => ({
-      id: item.asin,
-      title: item.title,
-      price: item.price?.value || 0,
-      currency: item.price?.currency || 'USD',
-      image_url: item.image,
-      product_url: item.link ? `https://www.amazon.com/dp/${item.asin}` : null,
-      canonical_url: item.asin ? `https://www.amazon.com/dp/${item.asin}` : null,
-      site: 'Amazon',
-      rating: item.rating || null,
-      reviewsCount: item.ratings_total || 0,
-      dimensions: {}
-    }));
-  }
-}
-
-// 3. RapidAPI Provider (Retail / Furniture inventory)
-class RapidApiProvider {
-  async search(query, apiKey, options = {}) {
-    const res = await fetch(`https://real-time-product-search.p.rapidapi.com/search?q=${encodeURIComponent(query)}&country=us&language=en`, {
-      headers: {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': 'real-time-product-search.p.rapidapi.com'
-      }
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`RapidAPI error (${res.status}): ${err}`);
-    }
-
-    const data = await res.json();
-    const results = data.data || [];
-
-    return results.map(item => ({
-      id: item.product_id,
-      title: item.product_title,
-      price: item.offer?.price || 0,
-      currency: 'USD',
-      image_url: item.product_photos?.[0] || '',
-      product_url: item.offer?.offer_page_url || item.product_page_url,
-      canonical_url: item.offer?.offer_page_url || item.product_page_url,
-      site: item.offer?.store_name || 'Retailer',
-      rating: item.product_rating || null,
-      reviewsCount: item.product_num_reviews || 0,
-      dimensions: {}
-    }));
-  }
-}
-
-// 4. Official Merchant Affiliate & Catalog Provider
-class AffiliateFeedProvider {
-  async search(query, apiKey, options = {}) {
-    return [];
+    db.saveProductSearch(sessionId, result);
+    return result;
   }
 }
 
 module.exports = new SearchAgent();
+module.exports.verifyLink = verifyLink;

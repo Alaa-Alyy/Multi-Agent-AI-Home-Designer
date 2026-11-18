@@ -1,87 +1,111 @@
+// Ranking agent: scores every verified product, then picks one per item so the total stays within budget.
 const db = require('../storage/database');
+const { itemLabel } = require('../knowledge/items');
+
+function scoreProduct(p, alloc, prefs, styleWords) {
+  const text = `${p.title} ${(p.colors || []).join(' ')}`.toLowerCase();
+  const breakdown = {};
+
+  // Budget fit (0-40): best at or a little under the item's share
+  const ratio = p.price / Math.max(1, alloc.allocatedAmount);
+  breakdown.budgetFit = Math.round(40 * (ratio <= 1 ? 1 - Math.max(0, 0.6 - ratio) : Math.max(0, 1 - (ratio - 1) * 2)));
+
+  // Colour match (0-20)
+  const liked = (prefs.colors || []).filter(c => c !== 'neutral');
+  const avoid = prefs.colorsToAvoid || [];
+  const likedHit = liked.some(c => c.split(/\s+/).some(w => w.length > 2 && text.includes(w)));
+  const avoidHit = avoid.some(c => text.includes(c));
+  breakdown.colorMatch = avoidHit ? -20 : likedHit ? 20 : liked.length ? 5 : 10;
+
+  // Style words from RAG (0-15)
+  const hits = styleWords.filter(w => text.includes(w)).length;
+  breakdown.styleMatch = Math.min(15, hits * 5);
+
+  // Ratings and reviews (0-15)
+  breakdown.rating = p.rating ? Math.round((p.rating / 5) * 10 + Math.min(5, Math.log10(1 + (p.reviewsCount || 0)) * 2)) : 4;
+
+  // Store reliability (0-10): official store, not sponsored
+  breakdown.store = p.source === 'ikea' ? 10 : p.sponsored ? 3 : 6;
+
+  const total = Object.values(breakdown).reduce((s, v) => s + v, 0);
+  return { score: Math.max(0, Math.min(100, total)), breakdown };
+}
+
+// Pick one product per item; if over budget, keep swapping the item that saves the most for the
+// smallest loss in score, until the set fits.
+function pickWithinBudget(groups, spendable) {
+  const choice = Object.fromEntries(groups.map(g => [g.itemKey, 0]));
+  const total = () => groups.reduce((s, g) => s + (g.products[choice[g.itemKey]]?.price || 0), 0);
+
+  let guard = 0;
+  while (total() > spendable && guard++ < 200) {
+    let best = null;
+    for (const g of groups) {
+      const current = g.products[choice[g.itemKey]];
+      if (!current) continue;
+      g.products.forEach((alt, idx) => {
+        if (alt.price >= current.price) return;
+        const saving = current.price - alt.price;
+        const loss = Math.max(1, current.rankingScore - alt.rankingScore);
+        const value = saving / loss;
+        if (!best || value > best.value) best = { itemKey: g.itemKey, idx, value };
+      });
+    }
+    if (!best) break; // nothing cheaper left
+    choice[best.itemKey] = best.idx;
+  }
+  return { choice, total: total(), fits: total() <= spendable };
+}
 
 class RankingAgent {
   rankProducts(sessionId) {
-    const searchData = db.getProductSearch(sessionId);
-    const budgetAllocation = db.getBudgetAllocation(sessionId);
-    const ragContext = db.getRAGContext(sessionId);
-    const preferences = db.getPreferences(sessionId) || {};
+    const search = db.getProductSearch(sessionId);
+    const budget = db.getBudgetAllocation(sessionId);
+    const rag = db.getRAGContext(sessionId);
+    const prefs = db.getPreferences(sessionId) || {};
+    const lang = prefs.language === 'ar' ? 'ar' : 'en';
 
-    const products = searchData?.products || [];
-    const styleInfo = ragContext?.retrievedStyle || {};
-    const styleKeywords = (styleInfo.keyElements || []).concat(styleInfo.materials || []).map(k => k.toLowerCase());
+    const styleWords = [...(rag?.retrievedStyle?.materials || []), ...(rag?.retrievedStyle?.keyElements || [])]
+      .flatMap(s => s.toLowerCase().split(/[\s,/]+/)).filter(w => w.length > 3);
 
-    console.log(`[Ranking Agent] Scoring and ranking ${products.length} products for session ${sessionId}...`);
-
-    const scoredProducts = products.map(product => {
-      let score = 50; // Base score
-
-      // 1. Style Compatibility Score (0-25 pts)
-      const text = (product.title + ' ' + (product.description || '')).toLowerCase();
-      let keywordHits = 0;
-      styleKeywords.forEach(kw => {
-        if (text.includes(kw)) keywordHits += 1;
-      });
-      score += Math.min(25, keywordHits * 5);
-
-      // 2. Budget Fit Score (0-20 pts)
-      const categoryAlloc = (budgetAllocation?.allocations || []).find(a => a.category === product.category);
-      if (categoryAlloc) {
-        const targetPrice = categoryAlloc.allocatedAmount;
-        const diffRatio = Math.abs(product.price - targetPrice) / Math.max(1, targetPrice);
-        if (product.price <= categoryAlloc.targetPriceRange.max) {
-          // Rewarding items within range
-          score += Math.max(0, Math.round(20 * (1 - diffRatio)));
-        } else {
-          // Penalize over-budget items
-          score -= 15;
-        }
-      }
-
-      // 3. Customer Rating Score (0-15 pts)
-      if (product.rating > 0) {
-        score += Math.round((product.rating / 5) * 15);
-      }
-
-      return {
-        ...product,
-        rankingScore: Math.max(0, Math.min(100, score)),
-        scoreBreakdown: {
-          styleMatch: Math.min(25, keywordHits * 5),
-          budgetFit: product.price <= (categoryAlloc?.targetPriceRange.max || Infinity) ? 15 : 0,
-          ratingBonus: Math.round(((product.rating || 4) / 5) * 15)
-        }
-      };
-    });
-
-    // Group ranked products by category
-    const rankedByCategory = {};
-    const categories = budgetAllocation?.allocations || [];
-
-    categories.forEach(cat => {
-      const catProducts = scoredProducts
-        .filter(p => p.category === cat.category)
+    const groups = (budget?.allocations || []).map(alloc => {
+      const products = (search?.products || [])
+        .filter(p => p.category === alloc.itemKey)
+        .map(p => {
+          const { score, breakdown } = scoreProduct(p, alloc, prefs, styleWords);
+          return { ...p, rankingScore: score, scoreBreakdown: breakdown };
+        })
         .sort((a, b) => b.rankingScore - a.rankingScore);
-
-      rankedByCategory[cat.category] = {
-        category: cat.category,
-        allocatedBudget: cat.allocatedAmount,
-        targetPriceRange: cat.targetPriceRange,
-        products: catProducts
+      return {
+        itemKey: alloc.itemKey,
+        category: alloc.itemKey,
+        label: itemLabel(alloc.itemKey, lang),
+        allocatedBudget: alloc.allocatedAmount,
+        targetPriceRange: alloc.targetPriceRange,
+        products
       };
     });
+
+    const withProducts = groups.filter(g => g.products.length);
+    const { choice, total, fits } = pickWithinBudget(withProducts, budget.spendable);
 
     const result = {
-      totalRanked: scoredProducts.length,
-      rankedByCategory,
-      recommendedSet: Object.values(rankedByCategory)
-        .map(catGroup => catGroup.products[0])
-        .filter(Boolean)
+      currency: 'EGP',
+      totalRanked: withProducts.reduce((s, g) => s + g.products.length, 0),
+      rankedByCategory: Object.fromEntries(groups.map(g => [g.itemKey, g])),
+      itemsWithoutResults: groups.filter(g => !g.products.length).map(g => g.itemKey),
+      recommendedSet: withProducts.map(g => g.products[choice[g.itemKey]]).filter(Boolean),
+      recommendedTotal: total,
+      fitsBudget: fits,
+      budget: budget.totalBudget,
+      spendable: budget.spendable
     };
-
+    console.log(`[Ranking Agent] Recommended set: ${result.recommendedSet.length} items, ${total} EGP of ${budget.totalBudget} EGP (${fits ? 'fits' : 'over budget'})`);
     db.saveProductRankings(sessionId, result);
     return result;
   }
 }
 
 module.exports = new RankingAgent();
+module.exports.pickWithinBudget = pickWithinBudget;
+module.exports.scoreProduct = scoreProduct;

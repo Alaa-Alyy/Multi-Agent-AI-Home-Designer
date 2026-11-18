@@ -1,22 +1,26 @@
 {
   "name": "roomly-ai",
-  "version": "1.0.0",
-  "description": "Roomly AI — AI Room Redecoration Platform with n8n workflow integration, Vision, RAG, Budget Allocation, Credential-ready Search, HITL Product Selection, and OpenAI Image Generation.",
+  "version": "2.0.0",
+  "description": "Roomly AI: upload a room photo, chat about your style and budget, and get a redesign with real products from Egyptian stores, rendered in your own room.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "seed": "node src/knowledge/seedKnowledgeBase.js",
-    "test-pipeline": "node tests/test-pipeline.js"
+    "test": "node --test tests/unit.test.js",
+    "smoke": "node tests/smoke-live.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "keywords": [
-    "room-redecoration",
     "interior-design",
+    "multi-agent",
     "ai",
-    "n8n",
-    "vision",
     "rag",
-    "budget-allocation",
-    "openai"
+    "vision",
+    "image-editing",
+    "egypt",
+    "n8n"
   ],
   "author": "Roomly AI Team",
   "license": "MIT",
@@ -25,6 +29,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
+    "sharp": "^0.34.4",
     "uuid": "^9.0.1"
   }
 }

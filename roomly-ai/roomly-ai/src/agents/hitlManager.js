@@ -1,70 +1,61 @@
+// Human-in-the-loop: the pipeline pauses so the user chooses the products.
+// The user's choice is matched against our own verified search results, so prices and links
+// always come from the search, never from the browser.
 const db = require('../storage/database');
 
 class HITLManager {
-  // Pause workflow and prepare options for user review
   pauseForUserSelection(sessionId) {
     const rankings = db.getProductRankings(sessionId);
-    const budgetAllocation = db.getBudgetAllocation(sessionId);
+    const budget = db.getBudgetAllocation(sessionId);
+    const recommended = rankings?.recommendedSet || [];
+    const totalSelectedPrice = recommended.reduce((s, p) => s + p.price, 0);
 
-    console.log(`[HITL Manager] Pausing workflow for session ${sessionId}. Awaiting Human-in-the-loop product selection.`);
-
-    const defaultSelections = (rankings?.recommendedSet || []).map(p => p.id);
-    const totalSelectedPrice = (rankings?.recommendedSet || []).reduce((sum, p) => sum + (p.price || 0), 0);
-
-    const hitlState = {
+    const state = {
       status: 'WAITING_FOR_USER_SELECTION',
       pausedAt: new Date().toISOString(),
+      currency: 'EGP',
       availableCategories: rankings?.rankedByCategory || {},
-      selectedProductIds: defaultSelections,
-      selectedProducts: rankings?.recommendedSet || [],
+      selectedProductIds: recommended.map(p => p.id),
+      selectedProducts: recommended,
       totalSelectedPrice,
-      budgetRemaining: (budgetAllocation?.totalBudget || 0) - totalSelectedPrice
+      budgetRemaining: (budget?.totalBudget || 0) - totalSelectedPrice
     };
-
-    db.saveHITLState(sessionId, hitlState);
+    db.saveHITLState(sessionId, state);
     db.updateSession(sessionId, { status: 'USER_SELECTION_PENDING' });
-
-    return hitlState;
+    console.log(`[HITL Manager] Waiting for the user to choose products (${recommended.length} recommended).`);
+    return state;
   }
 
-  // Handle user's confirmed selection payload (from UI or Webhook)
-  confirmUserSelection(sessionId, selectedProductsList) {
-    console.log(`[HITL Manager] Received user confirmation for session ${sessionId} with ${selectedProductsList.length} products.`);
-    const budgetAllocation = db.getBudgetAllocation(sessionId);
+  // `selection` is a list of product ids, or of objects with an `id`
+  confirmUserSelection(sessionId, selection) {
+    const rankings = db.getProductRankings(sessionId);
+    const budget = db.getBudgetAllocation(sessionId);
+    if (!rankings) throw new Error('No product search results for this session. Run the design first.');
 
-    // Validate and preserve complete canonical product schema as immutable data
-    const validatedProducts = selectedProductsList.map((p, idx) => ({
-      id: p.id || `sel_prod_${idx + 1}`,
-      title: (p.title || 'Selected Item').trim(),
-      category: p.category || 'Decor',
-      price: typeof p.price === 'number' ? p.price : parseFloat(p.price || 0),
-      currency: p.currency || 'USD',
-      image_url: p.image_url || '',
-      product_url: p.product_url || null,
-      canonical_url: p.canonical_url || p.product_url || null,
-      site: p.site || 'Verified Partner',
-      rating: p.rating !== undefined ? p.rating : null,
-      dimensions: p.dimensions || {},
-      source: p.source || p.site || 'selection',
-      placementNote: p.placementNote || `Place in accordance with ${p.category} spatial rules.`
-    }));
+    const known = new Map(Object.values(rankings.rankedByCategory || {}).flatMap(g => g.products).map(p => [p.id, p]));
+    const ids = (selection || []).map(s => (typeof s === 'string' ? s : s?.id)).filter(Boolean);
+    const unknown = ids.filter(id => !known.has(id));
+    if (unknown.length) throw new Error(`Unknown product ids: ${unknown.join(', ')}`);
 
-    const totalSelectedPrice = validatedProducts.reduce((sum, p) => sum + (p.price || 0), 0);
-    const totalBudget = budgetAllocation?.totalBudget || 0;
+    // At most one product per item
+    const perItem = new Map();
+    ids.map(id => known.get(id)).forEach(p => perItem.set(p.category, p));
+    const selectedProducts = [...perItem.values()];
+    const totalSelectedPrice = selectedProducts.reduce((s, p) => s + p.price, 0);
 
-    const hitlState = {
+    const state = {
       status: 'SELECTION_CONFIRMED',
       confirmedAt: new Date().toISOString(),
-      selectedProducts: validatedProducts,
-      selectedProductIds: validatedProducts.map(p => p.id),
+      currency: 'EGP',
+      selectedProducts,
+      selectedProductIds: selectedProducts.map(p => p.id),
       totalSelectedPrice,
-      budgetRemaining: totalBudget - totalSelectedPrice
+      budgetRemaining: (budget?.totalBudget || 0) - totalSelectedPrice
     };
-
-    db.saveHITLState(sessionId, hitlState);
+    db.saveHITLState(sessionId, state);
     db.updateSession(sessionId, { status: 'SELECTION_CONFIRMED' });
-
-    return hitlState;
+    console.log(`[HITL Manager] User chose ${selectedProducts.length} products, ${totalSelectedPrice} EGP.`);
+    return state;
   }
 }
 
