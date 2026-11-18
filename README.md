@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2f3e36,45:6b7f6a,80:c08a5b,100:e8d5b7&height=230&section=header&text=Roomly%20AI&fontSize=70&fontColor=fbf7f0&fontAlignY=38&desc=Multi-Agent%20AI%20Home%20Design%20%26%20Renovation%20Assistant&descAlignY=60&descSize=18&animation=fadeIn" width="100%" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2f3e36,45:6b7f6a,80:c08a5b,100:e8d5b7&height=230&section=header&text=Roomly%20AI&fontSize=70&fontColor=fbf7f0&fontAlignY=38&desc=Multi-Agent%20AI%20Home%20Design%20and%20Renovation%20Assistant&descAlignY=60&descSize=18&animation=fadeIn" width="100%" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
