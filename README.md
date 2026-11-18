@@ -1,658 +1,216 @@
-# 🏠 Multi-Agent AI Home Design & Renovation Assistant
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2f3e36,45:6b7f6a,80:c08a5b,100:e8d5b7&height=230&section=header&text=Roomly%20AI&fontSize=70&fontColor=fbf7f0&fontAlignY=38&desc=Multi-Agent%20AI%20Home%20Design%20%26%20Renovation%20Assistant&descAlignY=60&descSize=18&animation=fadeIn" width="100%" />
 
-> An orchestrated multi-agent AI system that transforms a room photo, user preferences, and a fixed EGP budget into a practical, purchase-ready home redesign.
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-GPT--4o%20Vision-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/DALL%C2%B7E%203-image%20generation-412991?style=flat-square&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/n8n-workflows-EA4B71?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/RAG-design%20knowledge-c08a5b?style=flat-square" />
+  <img src="https://img.shields.io/badge/UI-English%20%7C%20%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-6b7f6a?style=flat-square" />
+  <img src="https://img.shields.io/badge/deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=black" />
+</p>
+
+<p align="center">
+  <b>Upload a photo of your room, tell it your style and budget, and a team of AI agents plans a purchase-ready redesign.</b>
+</p>
+
+---
+
+## 📑 Contents
+
+- [Overview](#-overview)
+- [Problem & motivation](#-problem--motivation)
+- [How it works](#-how-it-works)
+- [The agents](#-the-agents)
+- [Key features](#-key-features)
+- [Tech stack](#-tech-stack)
+- [Project structure](#-project-structure)
+- [Getting started](#-getting-started)
+- [Deploy on Render](#-deploy-on-render)
+- [n8n workflow integration](#-n8n-workflow-integration)
+- [Privacy & security](#-privacy--security)
+
+---
 
 ## 📌 Overview
 
-Designing and renovating a room from a photo can be challenging. Users often struggle to visualize how a new design will look, while many AI-generated design proposals fail to consider real-world product availability and local prices.
+Designing and renovating a room from a photo is hard. People struggle to picture how a new design will look, and many AI design ideas ignore what products actually exist and what they cost.
 
-**Multi-Agent AI Home Design & Renovation Assistant** addresses both challenges by combining:
+**Roomly AI** combines:
 
-* 🧠 AI-powered room understanding
-* 🎨 Personalized interior design generation
-* 💰 Budget-aware planning
-* 🛒 Semantic product retrieval from Egyptian catalogs
-* 🖼️ Photorealistic room redesign previews
-* 🔄 An iterative Design–Budget optimization loop
-
-The system takes a room image, design preferences, and a maximum budget in EGP and produces a complete redesign proposal with recommended products and an itemized budget.
-
----
-
-## 🎯 Problem & Motivation
-
-### Visual Planning is Difficult
-
-Users often cannot visualize how a redesigned room will look based only on descriptions, furniture choices, and color preferences.
-
-### Budget Realism is Missing
-
-Many design solutions focus on aesthetics without considering actual local product prices. This can result in unrealistic recommendations and unexpected costs.
-
-### Our Goal
-
-Build an integrated AI pipeline that generates:
-
-1. A realistic redesigned room preview
-2. A personalized design proposal
-3. A detailed budget breakdown
-4. Real product recommendations
-5. Direct purchase links where available
-
-—all while respecting a fixed Egyptian Pound (**EGP**) budget.
+- 🧠 AI room understanding from a photo
+- 🎨 Personalized interior design guided by a design knowledge base
+- 💰 Deterministic, category-by-category budget allocation
+- 🛒 Product search and multi-criteria ranking
+- 🙋 A mandatory **human-in-the-loop** step where you choose the products
+- 🖼️ A photorealistic redesign preview
+- 📦 A final redesign package with itemized costs and before/after comparison
 
 ---
 
-# 🚀 Key Features
+## 🎯 Problem & motivation
 
-### 📷 Room Understanding
+**Visual planning is difficult.** Users often cannot picture a redesigned room from descriptions, furniture choices, and colour preferences alone.
 
-The Vision Agent analyzes the uploaded room image and extracts:
+**Budget realism is missing.** Many design tools focus on looks and ignore real product prices, which leads to unrealistic plans and surprise costs.
 
-* Room type
-* Existing furniture
-* Furniture positions
-* Doors and windows
-* Fixed architectural elements
-* Lighting conditions
-* Dominant colors
-* Spatial information
+**Our goal:** one AI pipeline that produces a realistic redesign preview, a personalized design proposal, a budget breakdown, and real product recommendations, while respecting the user's budget.
 
-The result is converted into a structured room schema that can be consumed by the other agents.
+> **From room photo → AI design → real products → your choice → purchase-ready redesign**
 
 ---
 
-### 🎨 AI Interior Design
+## ⚙️ How it works
 
-The Design Agent uses the detected room structure and user preferences to generate a personalized redesign proposal.
+The orchestrator is a state machine that moves every session through ten steps, with a mandatory pause for the user to choose products before any image is generated.
 
-Users can specify:
-
-* Interior style
-* Preferred colors
-* Furniture preferences
-* Items to keep
-* Items to replace
-* Design priorities
-* Budget constraints
-
-The Design Agent generates:
-
-* Furniture recommendations
-* Decor recommendations
-* Placement suggestions
-* Color palette
-* Lighting plan
-* Layout adjustments
-* Design priorities
-
----
-
-### 💰 Budget-Aware Planning
-
-The Budget Agent evaluates the proposed design against real product prices retrieved from the shopping system.
-
-It:
-
-* Calculates estimated costs in EGP
-* Identifies expensive items
-* Detects budget overruns
-* Prioritizes essential items
-* Suggests cheaper alternatives
-* Provides targeted revision feedback
-
----
-
-### 🛒 Intelligent Product Retrieval
-
-The Shopping Agent retrieves semantically relevant products from a localized Egyptian catalog.
-
-The catalog can contain:
-
-* Product names
-* Product descriptions
-* Categories
-* Dimensions
-* Images
-* Prices in EGP
-* Product URLs
-* Seller information
-* Availability information
-
-The system uses:
-
-**Embeddings + PostgreSQL + pgvector**
-
-to perform semantic similarity search rather than relying only on exact keyword matching.
-
----
-
-# 🤖 Multi-Agent Architecture
-
-The system is built around four specialized AI agents coordinated by a deterministic orchestrator.
-
-```text
-                         ┌──────────────────────┐
-                         │       User Input     │
-                         │                      │
-                         │ Room Photo           │
-                         │ Preferences          │
-                         │ Max Budget (EGP)     │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   LangGraph          │
-                         │   Orchestrator       │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   Vision Agent       │
-                         │                      │
-                         │ Room Understanding   │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   Design Agent       │
-                         │                      │
-                         │ Personalized Design  │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   Shopping Agent     │
-                         │                      │
-                         │ Semantic Retrieval   │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │    Budget Agent      │
-                         │                      │
-                         │ Cost Evaluation      │
-                         └──────────┬───────────┘
-                                    │
-                         ┌──────────┴───────────┐
-                         │                      │
-                    Within Budget?          Over Budget
-                         │                      │
-                         ▼                      ▼
-                   Final Result         Targeted Revision
-                                                │
-                                                └──────► Design Agent
+```mermaid
+flowchart TD
+    A["💬 Intake<br/>guided chat"] --> B["📷 Vision analysis<br/>GPT-4o"]
+    B --> C["❤️ Preference analysis"]
+    C --> D["📚 RAG lookup<br/>design knowledge base"]
+    D --> E["💰 Budget allocation<br/>per category"]
+    E --> F["🛒 Product search"]
+    F --> G["🏅 Rank & present"]
+    G --> H{"🙋 User selection<br/>human in the loop"}
+    H --> I["🖼️ Image generation<br/>DALL·E 3"]
+    I --> J["📦 Final result<br/>design + costs + before/after"]
+    K["⏰ Price & restock watcher"] -.-> J
 ```
 
 ---
 
-# 🧩 Agents
+## 🤖 The agents
 
-## 1. Vision Agent
+| Agent | File | What it does |
+|---|---|---|
+| 💬 Intake | `intakeAgent.js` | Guided, multi-turn chat that collects the brief |
+| 📷 Vision | `visionAgent.js` | GPT-4o Vision turns the room photo into a structured room analysis |
+| ❤️ Preference | `preferenceAgent.js` | Tracks and de-duplicates style, colour, and keep/replace preferences |
+| 📚 RAG | `ragAgent.js` | Retrieves interior design guidance from a local vector index |
+| 💰 Budget | `budgetAgent.js` | Splits the total budget across categories by room type; kept items get no budget |
+| 🛒 Search | `searchAgent.js` | Provider-agnostic product search (SerpAPI, Rainforest, RapidAPI), with built-in fallback data |
+| 🏅 Ranking | `rankingAgent.js` | Ranks products on several criteria |
+| 🙋 Human-in-the-loop | `hitlManager.js` | Pauses the pipeline until the user confirms the product choices |
+| 📐 Placement | `placementAgent.js` | Plans where the chosen items go in the room |
+| 🖼️ Image generation | `imageGenAgent.js` | Builds an architectural prompt for DALL·E 3 to render the redesign |
+| 📦 Final designer | `finalDesigner.js` | Assembles the final redesign package |
+| ⏰ Price watcher | `priceWatcher.js` | Watches prices and stock of chosen items |
 
-### Responsibility
+---
 
-Convert the uploaded room image into a structured representation.
+## ✨ Key features
 
-### Input
+- **Room understanding:** room type, existing furniture, doors and windows, lighting, dominant colours
+- **Design guided by knowledge:** a seeded interior design knowledge base, retrieved per request
+- **Budget you can trust:** deterministic allocation, not a guess
+- **You stay in control:** nothing is generated until you pick the products
+- **Before / after preview** of the redesigned room
+- **Bilingual interface:** English and Arabic
+- **Works without paid search keys:** built-in fallback analysis and product data for demos
+- **n8n workflows** for every step, ready to import
 
-```text
-Room Image
+---
+
+## 🛠️ Tech stack
+
+| Area | Tools |
+|---|---|
+| Backend | Node.js, Express, Multer (uploads) |
+| AI | OpenAI GPT-4o Vision, DALL·E 3 |
+| Retrieval | Local TF-IDF vector index over a design knowledge base |
+| Product search | SerpAPI, Rainforest API, RapidAPI (optional) |
+| Workflows | n8n |
+| Frontend | HTML, CSS, JavaScript (glassmorphic UI, English / Arabic) |
+| Storage | JSON file database with audit log |
+| Deploy | Docker, Render |
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=nodejs,express,js,html,css,docker,git,github&perline=8" />
+</p>
+
+---
+
+## 📂 Project structure
+
 ```
-
-### Output
-
-```json
-{
-  "room_type": "living_room",
-  "furniture": [],
-  "structural_elements": [],
-  "lighting": {},
-  "color_palette": [],
-  "spatial_information": {}
-}
-```
-
-The Vision Agent provides the structured information required by the downstream design and image-generation pipeline.
-
----
-
-## 2. Design Agent
-
-### Responsibility
-
-Generate a personalized redesign based on:
-
-* Room schema
-* User preferences
-* Style
-* Colors
-* Keep/replace rules
-* Budget constraints
-
-### Output
-
-A structured design proposal containing:
-
-* Furniture
-* Decor
-* Placement
-* Colors
-* Lighting
-* Priorities
-* Replacement suggestions
-
-The Design Agent is powered by Llama through Groq for constrained multi-step reasoning and creative design generation.
-
----
-
-## 3. Shopping Agent
-
-### Responsibility
-
-Map design requirements to real products available in the Egyptian market.
-
-### Retrieval Pipeline
-
-```text
-Design Requirement
-       │
-       ▼
-Text Embedding
-       │
-       ▼
-pgvector Similarity Search
-       │
-       ▼
-Candidate Products
-       │
-       ▼
-Ranking
-       │
-       ▼
-Product + Price + Image + URL
-```
-
-The Shopping Agent returns ranked product candidates based on semantic similarity and catalog information.
-
----
-
-## 4. Budget Agent
-
-### Responsibility
-
-Ensure that the generated design is financially feasible.
-
-The Budget Agent:
-
-1. Receives the proposed design
-2. Gets product candidates and prices
-3. Calculates the total estimated cost
-4. Compares it with the user's maximum budget
-5. Identifies expensive contributors
-6. Generates targeted revision instructions when necessary
-
----
-
-# 🔄 Core Innovation: Design–Budget Loop
-
-One of the core ideas of the system is the iterative **Design–Budget Loop**.
-
-Instead of generating a design once and simply showing the user an unrealistic price, the system can revise the design when it exceeds the user's budget.
-
-### Example
-
-```text
-Design Proposal
-      │
-      ▼
-Product Retrieval
-      │
-      ▼
-Cost Calculation
-      │
-      ▼
-Within Budget?
-   ┌──┴──┐
-  YES    NO
-   │      │
-   ▼      ▼
- Final   Identify
- Design  Expensive Items
-          │
-          ▼
-       Targeted
-        Revision
-          │
-          ▼
-      Design Agent
-          │
-          └──────────► Shopping Agent
-```
-
-The revision process focuses on minimal changes rather than regenerating the entire design.
-
-Possible revisions include:
-
-* Swap an expensive SKU
-* Replace a non-essential item
-* Remove unnecessary decor
-* Simplify the design
-* Postpone lower-priority purchases
-
-This allows the system to preserve the user's main design preferences while adapting the proposal to the available budget.
-
----
-
-# 🧠 Shared State
-
-All agents communicate through a shared structured state managed by the orchestrator.
-
-A simplified representation is:
-
-```json
-{
-  "room_schema": {},
-  "user_preferences": {},
-  "design_proposal": {},
-  "product_candidates": [],
-  "budget": {
-    "max_budget": 0,
-    "estimated_total": 0,
-    "status": "within_budget"
-  },
-  "revision_feedback": [],
-  "final_result": {}
-}
-```
-
-This shared state allows each agent to operate independently while maintaining a consistent view of the current design iteration.
-
----
-
-# 🛍️ Product Catalog
-
-The product retrieval layer is designed around localized Egyptian product data.
-
-Potential catalog sources include:
-
-* IKEA Egypt
-* Jumia Egypt
-
-The catalog stores information such as:
-
-| Field       | Description                       |
-| ----------- | --------------------------------- |
-| SKU         | Product identifier                |
-| Name        | Product name                      |
-| Category    | Furniture / Lighting / Decor etc. |
-| Description | Product description               |
-| Dimensions  | Product dimensions                |
-| Price       | Current price in EGP              |
-| Image       | Product image                     |
-| URL         | Direct product link               |
-| Embedding   | Semantic representation           |
-
-> Product prices and availability can change over time. The system should treat catalog information as time-sensitive.
-
----
-
-# 🖼️ Visual Output
-
-The final user experience combines the generated design with a purchase-ready shopping plan.
-
-### Before / After Preview
-
-The system generates a redesigned version of the uploaded room while preserving the important structural characteristics of the original space.
-
-### Shopping Recommendations
-
-Each recommended item can include:
-
-* Product name
-* Product image
-* Similarity score
-* Price in EGP
-* Availability
-* Direct purchase link
-
----
-
-# 💰 Budget Breakdown
-
-The final budget can be presented as an itemized breakdown:
-
-| Category  | Estimated Cost |
-| --------- | -------------: |
-| Furniture |        EGP ... |
-| Lighting  |        EGP ... |
-| Decor     |        EGP ... |
-| Labor     |        EGP ... |
-| Shipping  |        EGP ... |
-| **Total** |    **EGP ...** |
-
-The exact values depend on the retrieved products and the current catalog data.
-
----
-
-# 👤 User Revision Path
-
-After receiving the initial design, the user can request targeted changes such as:
-
-* Change the interior style
-* Change colors
-* Increase the budget
-* Decrease the budget
-* Keep a specific item
-* Replace a specific item
-* Remove non-essential items
-
-These requests are routed back into the appropriate stage of the orchestration pipeline.
-
----
-
-# 🏗️ Technology Stack
-
-### AI / LLM
-
-* Llama
-* Groq
-
-### Agent Orchestration
-
-* LangGraph
-
-### Retrieval
-
-* Embeddings
-* PostgreSQL
-* pgvector
-* Semantic similarity search
-
-### Computer Vision
-
-* Vision LLM
-* Image segmentation / masks
-
-### Image Generation
-
-* Image-to-image generation pipeline
-
-### Backend
-
-* Python
-
-### Data
-
-* Localized Egyptian product catalog
-* EGP pricing
-* Product metadata
-
----
-
-# 📂 Project Structure
-
-```text
 .
-├── src/
-│   ├── agents/
-│   │   ├── vision_agent.py
-│   │   ├── design_agent.py
-│   │   ├── budget_agent.py
-│   │   └── shopping_agent.py
-│   │
-│   ├── orchestrator/
-│   │   └── graph.py
-│   │
-│   ├── retrieval/
-│   │   ├── embeddings.py
-│   │   └── vector_search.py
-│   │
-│   ├── state/
-│   │   └── shared_state.py
-│   │
-│   └── main.py
-│
-├── data/
-├── tests/
-├── notebooks/
-├── assets/
-├── docs/
-│
-├── .env.example
-├── .gitignore
-├── requirements.txt
-├── LICENSE
-└── README.md
+├── render.yaml                         # Render Blueprint (free plan, Docker)
+├── Multi-Agent-AI-Home-Design-and-Renovation-Assistant.pptx   # project presentation
+└── roomly-ai/roomly-ai/
+    ├── n8n-workflows/                  # 9 n8n workflow exports (orchestrator + each agent)
+    ├── src/
+    │   ├── server.js                   # Express API + n8n webhook bridge
+    │   ├── orchestrator.js             # 10-step state machine
+    │   ├── agents/                     # the 12 agents listed above
+    │   ├── knowledge/                  # design knowledge base + vector index
+    │   └── storage/database.js         # persistence + audit log
+    ├── public/                         # web app (index.html, style.css, app.js, i18n.js)
+    ├── tests/test-pipeline.js          # end-to-end verification
+    ├── Dockerfile
+    └── .env.example
 ```
+
+📊 Presentation: [`Multi-Agent-AI-Home-Design-and-Renovation-Assistant.pptx`](Multi-Agent-AI-Home-Design-and-Renovation-Assistant.pptx)
 
 ---
 
-# ⚙️ Installation
-
-## 1. Clone the repository
+## 🚀 Getting started
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/multi-agent-ai-home-design.git
-cd multi-agent-ai-home-design
+cd roomly-ai/roomly-ai
+npm install
+npm run seed            # build the design knowledge index
 ```
 
-## 2. Create a virtual environment
-
-### Windows
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-### macOS / Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-## 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## 4. Configure environment variables
-
-Create a `.env` file based on `.env.example`.
-
-Example:
+Create `.env` from `.env.example`:
 
 ```env
-GROQ_API_KEY=your_groq_api_key
-DATABASE_URL=your_postgresql_connection_string
+PORT=3000
+
+# OpenAI API key (vision analysis and DALL·E 3 image generation)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Product search provider keys (optional)
+SERPAPI_API_KEY=
+RAINFOREST_API_KEY=
+RAPIDAPI_KEY=
 ```
 
-Never commit real API keys or credentials to GitHub.
-
----
-
-# ▶️ Running the Project
+Run it:
 
 ```bash
-python src/main.py
+npm start               # open http://localhost:3000
+npm run test-pipeline   # end-to-end check
 ```
 
-If the project uses a web interface, start the application using the project's configured entry point.
+---
+
+## ☁️ Deploy on Render
+
+The repo includes a free Render Blueprint (`render.yaml`) that builds the app from `roomly-ai/roomly-ai` with Docker.
+
+1. In Render, choose **New → Blueprint** and connect this repository.
+2. Enter `OPENAI_API_KEY` when asked. Add a product-search key only if you want live retailer results.
+3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"`.
+
+The free service sleeps after inactivity and clears uploaded photos and sessions when it restarts.
 
 ---
 
-# 🔐 Environment Variables
+## 🔌 n8n workflow integration
 
-| Variable        | Description                               |
-| --------------- | ----------------------------------------- |
-| `GROQ_API_KEY`  | API key used for Llama/Groq               |
-| `DATABASE_URL`  | PostgreSQL database connection            |
-| `PGVECTOR...`   | Vector database configuration             |
-| `IMAGE_API_KEY` | Image generation service key, if required |
-
-Only include variables that are actually used by the project.
+1. Open your n8n dashboard (`http://localhost:5678`).
+2. Go to **Workflows → Import from File**.
+3. Import the files from `roomly-ai/roomly-ai/n8n-workflows/`, starting with `01_roomly_master_orchestrator.json`.
+4. Point the webhook / HTTP request nodes to `http://localhost:3000` (or your deployment URL).
 
 ---
 
-# 🧪 Evaluation
+## 🔒 Privacy & security
 
-The system can be evaluated across several dimensions:
+- Never commit API keys; keep them in `.env` and document them in `.env.example`.
+- Do not commit private room photos or personal information.
+- Treat product prices and availability as changing data.
 
-### Vision
-
-* Room-type classification
-* Furniture detection
-* Structural-element preservation
-
-### Design
-
-* Preference adherence
-* Layout consistency
-* Design quality
-
-### Budget
-
-* Budget compliance
-* Cost estimation accuracy
-* Number of revision iterations
-
-### Shopping
-
-* Semantic retrieval quality
-* Product relevance
-* Price correctness
-* Link validity
-
-### End-to-End
-
-* Visual quality
-* Budget feasibility
-* Product relevance
-* User satisfaction
-
----
-
-# 🔒 Privacy & Security
-
-* Do not commit API keys.
-* Do not commit private user images.
-* Do not commit personal information.
-* Use `.env` for secrets.
-* Use `.env.example` to document required variables.
-* Treat product prices and availability as dynamic data.
-
----
-
-# 🎓 Graduation Project
-
-This project was developed as a **Graduation Project** focused on applying multi-agent AI systems to practical interior design and renovation planning.
-
-### Main Concept
-
-> **From Room Photo → AI Design → Real Products → Budget Validation → Purchase-Ready Redesign**
-
-
-See the `LICENSE` file for details.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:e8d5b7,20:c08a5b,55:6b7f6a,100:2f3e36&height=100&section=footer" width="100%" />
