@@ -45,8 +45,10 @@ function allocate(prefs) {
         allocatedAmount,
         priority: item.big ? 1 : 2,
         underfunded,
+        // The minimum only filters out covers and accessories; it must NOT grow with the budget,
+        // otherwise a large budget leaves no real product in range.
         targetPriceRange: {
-          min: Math.round(Math.max(item.minEGP, allocatedAmount * 0.3)),
+          min: item.minEGP,
           max: Math.round(underfunded ? item.minEGP * 1.8 : allocatedAmount * 1.3)
         },
         searchQuery: searchQuery(key, prefs)

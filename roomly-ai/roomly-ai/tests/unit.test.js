@@ -30,6 +30,13 @@ test('budget: shares add up and stay under the total, with a reserve', () => {
   assert.ok(sofa.targetPriceRange.min >= 3000, 'sofa minimum filters out covers and accessories');
 });
 
+test('budget: a very large budget does not push the minimum price out of reach', () => {
+  const b = allocate({ ...brief, budget: 1000000, items: ['sofa', 'coffee_table', 'rug', 'dining_table'] });
+  const sofa = b.allocations.find(a => a.itemKey === 'sofa');
+  assert.strictEqual(sofa.targetPriceRange.min, 3000, 'real sofas (e.g. 18,000 EGP) must stay in range');
+  assert.ok(sofa.targetPriceRange.max > 300000);
+});
+
 test('budget: refuses an incomplete brief', () => {
   assert.throws(() => allocate({ ...brief, budget: undefined }));
   assert.throws(() => allocate({ ...brief, items: [] }));
@@ -65,7 +72,7 @@ test('intake: detects pets and children in Arabic and English', () => {
 });
 
 test('intake: recognises "suggest for me" answers', () => {
-  for (const t of ['اقترح عليا انت الحاجات', 'على ذوقك', 'انت اختار', 'suggest something', 'up to you']) assert.ok(intake.wantsSuggestion(t), t);
+  for (const t of ['اقترح عليا انت الحاجات', 'على ذوقك', 'انت اختار', 'suggest something', 'up to you', 'list for me', 'you decide']) assert.ok(intake.wantsSuggestion(t), t);
   for (const t of ['كنبة وسجادة', 'a sofa and a rug']) assert.ok(!intake.wantsSuggestion(t), t);
 });
 

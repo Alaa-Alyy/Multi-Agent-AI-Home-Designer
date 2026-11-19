@@ -52,10 +52,11 @@ const EXTRACT_PROMPT = `Extract interior-design facts from the USER'S LAST MESSA
 - roomType: living_room | bedroom | home_office | dining_room | kids_room | other. "معيشة/ريسبشن/صالة" = living_room, "نوم" = bedroom, "مكتب" = home_office, "سفرة" = dining_room, "أطفال" = kids_room.
 - items: furniture they want to BUY, as keys from: ${ITEM_KEYS.join(', ')}. كنبة=sofa, فوتيه=armchair, ترابيزة/ترابيزة وسط=coffee_table, سجادة=rug, ستارة/ستائر=curtains, أباجورة=floor_lamp or table_lamp, نجفة=ceiling_light, تابلوه=wall_art, سرير=bed, كومودينو=nightstand, دولاب=wardrobe, مكتب=desk, سفرة=dining_table.
 - removeItems: items they say they do NOT want.
-- useDefaultItems: true if they ask you to suggest/choose the items ("اقترح انت", "انت اختار", "suggest").
+- useDefaultItems: true if they ask you to suggest/choose the items ("اقترح انت", "انت اختار", "suggest", "list for me", "you decide").
+- Fix obvious spelling mistakes in item names too ("coffe table" = coffee_table, "soffa" = sofa).
 - keepItems: existing furniture to keep. keepNothing: true if they keep nothing.
 - preferredStyle: one of ${STYLES.join(', ')}.
-- colors / colorsToAvoid: colour names in English.
+- colors / colorsToAvoid: colour names in English. Fix obvious spelling mistakes to the closest real colour ("buge"/"bege" = beige, "brgundy" = burgundy, "grean" = green); never change a word into an unrelated colour.
 - occupants: adults | children | pets | children_and_pets. Any cat/dog/قطة/كلب = pets. Kids/أطفال/ولاد = children.
 - budget: total in EGP as a number. "40 ألف" or "٤٠ ألف" = 40000. "مليون" = 1000000.
 - notes: other wishes (e.g. needs storage, loves plants), in English.`;
@@ -127,7 +128,7 @@ function detectOccupants(text, current) {
 
 // Keyword safety net: "suggest for me" style answers to the items question
 function wantsSuggestion(text) {
-  return /(اقترح|اقتراح|انت اختار|إنت اختار|اختار انت|اختارلي|على ذوقك|زي ما تشوف|اللي تشوفه|suggest|recommend|you choose|you pick|up to you)/i.test(text || '');
+  return /(اقترح|اقتراح|انت اختار|إنت اختار|اختار انت|اختارلي|على ذوقك|زي ما تشوف|اللي تشوفه|انت قرر|قائمة|suggest|recommend|you choose|you pick|you decide|up to you|your choice|for me|a list|make a list|surprise me|whatever you)/i.test(text || '');
 }
 
 const COLOR_AR = {

@@ -321,7 +321,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const html = groups.map(({ alloc, group }) => {
       const name = ar() ? alloc.labelAr : alloc.labelEn;
       if (!group.products.length) {
-        return `<div class="item-group"><div class="item-group-head"><h4>${esc(name)}</h4></div><div class="notice warn">${t('No product in this price range right now. Try a higher budget for it.', 'مفيش منتج في حدود السعر ده دلوقتي. جرّب ميزانية أعلى للحاجة دي.')}</div></div>`;
+        const tooLow = alloc.underfunded;
+        return `<div class="item-group"><div class="item-group-head"><h4>${esc(name)}</h4></div><div class="notice warn">${tooLow
+          ? t('The budget for this item is below what these stores sell it for. Raise the budget or skip it.', 'ميزانية الحاجة دي أقل من أسعارها في المتاجر دي. زوّد الميزانية أو شيلها.')
+          : t('No matching product found in IKEA Egypt or Amazon.eg right now. Try again later or skip it.', 'مالقيناش منتج مناسب في ايكيا مصر أو أمازون مصر دلوقتي. جرّب تاني بعدين أو شيلها.')}</div></div>`;
       }
       const rows = group.products.map(p => `
         <label class="product-row ${state.selection[alloc.itemKey] === p.id ? 'selected' : ''}">
@@ -344,6 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('contentHITL').innerHTML = `
       ${rankings.fitsBudget ? '' : `<div class="notice warn">${t('Even the cheapest good options go over your budget. You can skip items or raise the budget in the chat.', 'حتى أرخص اختيارات كويسة أعلى من الميزانية. ممكن تشيل حاجات أو تزوّد الميزانية في الدردشة.')}</div>`}
+      ${rankings.fitsBudget && rankings.recommendedTotal && rankings.recommendedTotal < budget.totalBudget * 0.5
+        ? `<div class="notice warn">${t(`These stores' best matches cost far less than your budget: about ${egp(budget.totalBudget - rankings.recommendedTotal)} would be left. You can add more items in the chat.`,
+            `أحسن الاختيارات في المتاجر دي أرخص بكتير من ميزانيتك، وهيفضل معاك حوالي ${egp(budget.totalBudget - rankings.recommendedTotal)}. ممكن تضيف حاجات تانية في الدردشة.`)}</div>` : ''}
       <div class="hitl-container">${html}
         <div class="hitl-footer">
           <div class="hitl-totals">${t('Total', 'الإجمالي')}: <span id="hitlTotal"></span> / ${egp(budget.totalBudget)}</div>
