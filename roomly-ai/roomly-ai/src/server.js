@@ -6,7 +6,7 @@ const multer = require('multer');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const db = require('./storage/database');
-const ai = require('./ai/cloudflare');
+const ai = require('./ai');
 const orchestrator = require('./orchestrator');
 const intakeAgent = require('./agents/intakeAgent');
 const visionAgent = require('./agents/visionAgent');
@@ -44,10 +44,12 @@ function sendError(res, err, lang = 'en') {
   const ar = lang === 'ar';
   if (err.code === 'DAILY_AI_LIMIT') {
     return res.status(429).json({ error: ar
-      ? 'خلصت الكمية المجانية من الذكاء الاصطناعي النهارده. هتتجدد الساعة ٢ بالليل بتوقيت القاهرة.'
+      ? 'الكمية المجانية من الذكاء الاصطناعي خلصت دلوقتي عند كل الخدمات. جرّب تاني بعد شوية.'
       : err.message, code: err.code });
   }
-  if (err.code === 'MISSING_CLOUDFLARE_CREDENTIALS') return res.status(503).json({ error: err.message, code: err.code });
+  if (err.code === 'AI_UNAVAILABLE' || err.code === 'MISSING_CLOUDFLARE_CREDENTIALS') {
+    return res.status(503).json({ error: ar ? 'خدمة الذكاء الاصطناعي مش متاحة دلوقتي. جرّب تاني بعد شوية.' : err.message, code: err.code });
+  }
   if (err.code === 'BRIEF_INCOMPLETE') {
     return res.status(400).json({ error: ar ? 'لسه محتاجين نكمّل كام سؤال قبل التصميم.' : err.message, code: err.code, missing: err.missing });
   }
@@ -149,7 +151,14 @@ app.get('/api/health', (req, res) => {
     status: 'HEALTHY',
     service: 'Roomly AI',
     timestamp: new Date().toISOString(),
-    credentials: { cloudflare: ai.isConfigured(), serpapi: Boolean(process.env.SERPAPI_API_KEY) },
+    credentials: {
+      ai: ai.isConfigured(),
+      cloudflare: Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN),
+      groq: Boolean(process.env.GROQ_API_KEY),
+      huggingface: Boolean(process.env.HF_TOKEN),
+      serpapi: Boolean(process.env.SERPAPI_API_KEY)
+    },
+    aiProviders: ai.status(),
     activeSearchProvider: searchAgent.getActiveProvider().name,
     knowledgeIndexReady: fs.existsSync(path.join(__dirname, 'knowledge/vectorIndex.json'))
   });
@@ -158,7 +167,8 @@ app.get('/api/health', (req, res) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\nRoomly AI running on http://localhost:${PORT}`);
-    console.log(`Cloudflare AI: ${ai.isConfigured() ? 'configured' : 'MISSING (set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN)'}`);
+    const s = ai.status();
+    console.log(`AI providers (in order): chat ${s.chat.join(' → ') || 'NONE'} | vision ${s.vision.join(' → ') || 'NONE'} | image ${s.image.join(' → ') || 'NONE'} | embeddings ${s.embed.join(' → ') || 'NONE'}`);
     console.log(`Product search: ${searchAgent.getActiveProvider().name}\n`);
   });
 }

@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const db = require('../storage/database');
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 const { ITEMS } = require('../knowledge/items');
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
@@ -116,7 +116,7 @@ Return the numbers of results that ARE a complete ${item.en.toLowerCase()} itsel
 Exclude covers, cushions, legs, spare parts, accessories, toys, miniatures, stickers, and different furniture.
 Results:
 ${list}` }
-    ], { schema: RELEVANCE_SCHEMA, temperature: 0, maxTokens: 200, model: ai.MODELS.fast });
+    ], { schema: RELEVANCE_SCHEMA, temperature: 0, maxTokens: 200, fast: true });
     const keep = new Set((out.matching || []).filter(i => Number.isInteger(i)));
     return products.filter((_, i) => keep.has(i));
   } catch (err) {

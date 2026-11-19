@@ -32,7 +32,12 @@ const CONVERSATION = [
   console.log(`1. Vision: ${v.roomType}, empty=${v.isEmptyRoom}, windows=${v.architecturalElements?.windows?.count}`);
 
   let st = await intake.openingMessage(id, 'ar');
-  for (const msg of CONVERSATION) st = await intake.processUserMessage(id, msg, 'ar');
+  console.log(`   Roomly: ${st.reply}`);
+  for (const msg of CONVERSATION) {
+    await new Promise(r => setTimeout(r, 5000)); // a real person takes a few seconds to answer
+    st = await intake.processUserMessage(id, msg, 'ar');
+    console.log(`   User: ${msg}\n   Roomly: ${st.reply.replace(/\n/g, '\n           ')}`);
+  }
   console.log(`2. Conversation: ready=${st.readyToDesign}, brief=${JSON.stringify({ room: st.preferences.roomType, items: st.preferences.items, style: st.preferences.preferredStyle, budget: st.preferences.budget, occupants: st.preferences.occupants })}`);
   if (!st.readyToDesign) throw new Error(`Brief incomplete: ${st.missing.join(', ')}`);
 

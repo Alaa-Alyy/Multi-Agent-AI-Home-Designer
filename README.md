@@ -116,7 +116,7 @@ flowchart TD
 - **Stays within budget:** the recommended set is adjusted until it fits, or the app says honestly that it cannot
 - **Your own room:** the after image keeps your walls, window, floor and camera angle
 - **You stay in control:** nothing is rendered until you choose the products
-- **Free to run:** Cloudflare Workers AI free plan + SerpAPI free plan (Amazon.eg is optional; IKEA Egypt needs no key)
+- **Free to run, with automatic backups:** Groq, Hugging Face and Cloudflare free plans; if one is busy or out of quota, the next one is used. SerpAPI free plan for Amazon.eg (optional; IKEA Egypt needs no key)
 - **No fake fallbacks:** if a key or the daily allowance is missing, the app says so clearly
 - **n8n workflows** for every step, ready to import
 
@@ -127,8 +127,10 @@ flowchart TD
 | Area | Tools |
 |---|---|
 | Backend | Node.js, Express, Multer (uploads) |
-| AI (Cloudflare Workers AI) | Llama 4 Scout (vision), Llama 3.3 70B (conversation), Llama 3.1 8B (quick checks), bge-m3 (embeddings), FLUX.2 [klein] 9B (image editing) |
-| Retrieval | bge-m3 embeddings over the design knowledge base (`npm run seed`) |
+| AI router (`src/ai/index.js`) | Tries free providers in order and switches automatically when one fails |
+| Chat & room analysis | Groq Qwen3.8 27B first; Cloudflare Llama 3.3 70B / Llama 4 Scout as backup |
+| Room image | FLUX.2 [klein] 9B: Hugging Face Space first (keeps the photo's shape), Cloudflare Workers AI as backup |
+| Retrieval | bge-m3 embeddings (Cloudflare, or Hugging Face Inference); keyword matching if neither is available |
 | Product search | IKEA Egypt site search, Amazon.eg through SerpAPI, 6–24 h cache |
 | Images | sharp (resizing before sending to the models) |
 | Workflows | n8n |
@@ -175,12 +177,19 @@ cd roomly-ai/roomly-ai
 npm install
 ```
 
-Create `.env` from `.env.example` (both keys are free, no credit card):
+Create `.env` from `.env.example` (all keys are free, no credit card). You need at least Groq **or** Cloudflare for chat, and Hugging Face **or** Cloudflare for the image; having all of them gives automatic backups.
 
 ```env
 PORT=3000
 
-# Cloudflare Workers AI: dash.cloudflare.com
+# Groq (chat + room analysis): console.groq.com > API Keys
+GROQ_API_KEY=
+
+# Hugging Face (room image; tick "Make calls to Inference Providers" for RAG embeddings):
+#   huggingface.co > Settings > Access Tokens
+HF_TOKEN=
+
+# Cloudflare Workers AI (embeddings + backup for everything): dash.cloudflare.com
 #   Account ID: dashboard home. API token: My Profile > API Tokens > "Workers AI" template
 CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_API_TOKEN=
@@ -204,7 +213,9 @@ npm run seed       # only after editing src/knowledge/knowledgeBase.json
 
 | Service | Free allowance | What it means |
 |---|---|---|
-| Cloudflare Workers AI | 10,000 neurons a day, reset at 00:00 UTC (02:00 Cairo) | About 4 full sessions a day; the app shows a clear message when it runs out |
+| Groq | ~1,000 requests a day, 7,000 input tokens a minute | Plenty for chat; when busy the app waits a few seconds and retries |
+| Hugging Face Space | A few GPU minutes a day (about 5–10 room images) | Each image takes ~30 s; Cloudflare is used if the quota runs out |
+| Cloudflare Workers AI | 10,000 neurons a day, reset at 00:00 UTC (02:00 Cairo) | Embeddings and backup. Known issue: the reset is sometimes delayed for hours on Cloudflare's side |
 | SerpAPI | 250 searches a month | About 40 sessions a month (one search per item); results are cached for 24 h |
 | IKEA Egypt | No key | Uses IKEA's public website search, cached for 6 h |
 
@@ -220,8 +231,8 @@ Notes:
 The repo includes a free Render Blueprint (`render.yaml`) that builds the app from `roomly-ai/roomly-ai` with Docker.
 
 1. In Render, choose **New → Blueprint** and connect this repository.
-2. Enter `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
-3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"`.
+2. Enter `GROQ_API_KEY`, `HF_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
+3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"` and lists the AI providers.
 
 The free service sleeps after inactivity and clears uploaded photos and sessions when it restarts.
 
