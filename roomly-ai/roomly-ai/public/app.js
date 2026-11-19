@@ -398,6 +398,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Item-by-item check of the generated image, done by a vision model on the server
+  function renderCheck(v) {
+    if (!v) return '';
+    if (!v.checked) return `<div class="notice warn">${t('The image could not be checked automatically. Please compare it with your list.', 'ماقدرناش نراجع الصورة أوتوماتيك. قارنها بقائمتك.')}</div>`;
+    const label = p => {
+      const a = (state.pipeline?.budget?.allocations || []).find(x => x.itemKey === p.category);
+      return a ? (ar() ? a.labelAr : a.labelEn) : p.category;
+    };
+    const row = i => {
+      const status = !i.present ? `⚠️ ${t('not clearly in the image', 'مش باينة في الصورة')}`
+        : i.count > 1 ? `⚠️ ${t(`appears ${i.count} times`, `ظاهرة ${i.count} مرات`)}`
+        : i.looksLike === 'different' ? `🟡 ${t('in the image, looks a bit different', 'موجودة، بس شكلها مختلف شوية')}`
+        : `✅ ${t('in the image', 'موجودة')}`;
+      return `<tr><td><strong>${esc(label(i))}</strong></td><td>${status}</td></tr>`;
+    };
+    return `
+      <div class="info-block" style="margin-top:12px;">
+        <h4>${v.ok ? '✅ ' : ''}${t('Checked: is everything you chose in the image?', 'المراجعة: كل اللي اخترته موجود في الصورة؟')}</h4>
+        <table class="changes-table"><tbody>${v.items.map(row).join('')}</tbody></table>
+        ${v.majorExtras?.length ? `<p class="over-budget" style="font-size:12px;margin-top:6px;">⚠️ ${t('Extra furniture added (not chosen)', 'عفش زيادة اتضاف (مش من اختيارك)')}: ${esc(v.majorExtras.join(', '))}</p>` : ''}
+        ${v.minorExtras?.length ? `<p style="font-size:11px;color:var(--text-muted);margin-top:4px;">${t('Small styling props added for the photo', 'إكسسوارات صغيرة اتضافت للصورة')}: ${esc(v.minorExtras.join(', '))}</p>` : ''}
+      </div>`;
+  }
+
   function renderResult({ image, finalDesign }) {
     // Image
     if (image?.status === 'SUCCESS') {
@@ -407,6 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="comparison-box"><span class="comparison-label">${t('BEFORE', 'قبل')}</span><img src="${safeUrl(state.imageUrl)}" alt=""></div>
           <div class="comparison-box"><span class="comparison-label" style="background:rgba(46,160,67,.9);">${t('AFTER', 'بعد')}</span><img src="${safeUrl(image.imageUrl)}" alt=""></div>
         </div>
+        ${renderCheck(image.verification)}
         <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">${t('AI preview: the real products may look slightly different.', 'صورة تخيلية بالذكاء الاصطناعي: المنتجات الحقيقية ممكن تختلف شوية.')}</p>`;
     } else {
       setStatus('statusImageGen', '⚠️', 'var(--accent-coral)');
