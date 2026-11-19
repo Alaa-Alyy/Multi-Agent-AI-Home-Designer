@@ -231,8 +231,8 @@ Notes:
 The repo includes a free Render Blueprint (`render.yaml`) that builds the app from `roomly-ai/roomly-ai` with Docker.
 
 1. In Render, choose **New → Blueprint** and connect this repository.
-2. Enter `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
-3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"`.
+2. Enter `GROQ_API_KEY`, `HF_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
+3. Deploy and check that `https://<your-service>.onrender.com/api/health` returns `"status":"HEALTHY"` and lists the AI providers.
 
 The free service sleeps after inactivity and clears uploaded photos and sessions when it restarts.
 
