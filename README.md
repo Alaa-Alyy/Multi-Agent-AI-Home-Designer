@@ -226,9 +226,22 @@ Notes:
 
 ---
 
-## ☁️ Deploy on Render
+## ☁️ Deploy on Railway
 
-The repo includes a free Render Blueprint (`render.yaml`) that builds the app from `roomly-ai/roomly-ai` with Docker.
+The app is in `roomly-ai/roomly-ai` with its own `Dockerfile` and `railway.json` (Docker build, health check `/api/health`).
+
+1. Go to [railway.com](https://railway.com) → **Login with GitHub**. If Railway asks to verify the account, do it: unverified trial accounts have restricted outbound internet, and the app needs it (Groq, Hugging Face, IKEA, SerpAPI).
+2. **New Project** → **Deploy from GitHub repo** → choose this repository, branch `main`.
+3. Open the service → **Settings** → **Source** → **Root Directory** = `roomly-ai/roomly-ai`.
+4. **Variables** → add `GROQ_API_KEY`, `HF_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY`. Never commit these.
+5. **Settings** → **Networking** → **Generate Domain** → `https://<something>.up.railway.app`.
+6. Check `https://<domain>/api/health` returns `"status":"HEALTHY"` and lists the AI providers.
+
+Every push or merge to `main` redeploys automatically. Uploaded photos and sessions are cleared when the service restarts.
+
+### Alternative: Render
+
+The repo also includes a Render Blueprint (`render.yaml`):
 
 1. In Render, choose **New → Blueprint** and connect this repository.
 2. Enter `GROQ_API_KEY`, `HF_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and (optionally) `SERPAPI_API_KEY` when asked.
