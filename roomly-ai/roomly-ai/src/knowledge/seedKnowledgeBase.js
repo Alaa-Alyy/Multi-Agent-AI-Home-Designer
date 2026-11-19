@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 
 const kbPath = path.join(__dirname, 'knowledgeBase.json');
 const outputPath = path.join(__dirname, 'vectorIndex.json');

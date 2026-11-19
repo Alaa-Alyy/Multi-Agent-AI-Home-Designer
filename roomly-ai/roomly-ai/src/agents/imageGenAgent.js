@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../storage/database');
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 const { ITEMS } = require('../knowledge/items');
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
@@ -57,8 +57,10 @@ function buildPrompt({ vision, prefs, refs, textOnly, keepItems }) {
   });
   if (keepItems?.length) lines.push(`Keep the existing ${keepItems.join(', ')} in place.`);
   lines.push('');
-  lines.push(`Style: ${prefs.preferredStyle || 'modern'} interior. Colour palette: ${(prefs.colors || []).join(', ') || 'neutral'}${prefs.colorsToAvoid?.length ? `, no ${prefs.colorsToAvoid.join(', ')}` : ''}.`);
+  lines.push(`Style: ${prefs.preferredStyle || 'modern'} interior. Accent palette for cushions, throws and small decor: ${(prefs.colors || []).join(', ') || 'neutral'}${prefs.colorsToAvoid?.length ? `, no ${prefs.colorsToAvoid.join(', ')}` : ''}.`);
+  if (refs.length) lines.push('The products shown in the reference images must keep their OWN exact colours; do not recolour them to match the palette.');
   if (vision?.lightingAssessment?.naturalLight) lines.push(`Keep the ${vision.lightingAssessment.naturalLight} natural daylight from the window.`);
+  lines.push('Add ONLY ONE of each item listed above: one of each, never duplicates, and no other furniture.');
   lines.push('Realistic proportions and scale for the room size. Photorealistic interior photograph, natural light, no people, no text.');
   return lines.join('\n');
 }
@@ -94,12 +96,12 @@ class ImageGenAgent {
     console.log(`[Image Generation Agent] Furnishing the room with ${refs.length} product photos + ${textOnly.length} described items...`);
     let result;
     try {
-      const image = await ai.editImage(prompt, [fs.readFileSync(session.originalImagePath), ...refImages]);
+      const { image, provider } = await ai.editImage(prompt, [fs.readFileSync(session.originalImagePath), ...refImages]);
       const fileName = `${sessionId}_${generationId}.jpg`;
       fs.writeFileSync(path.join(db.generatedDir, fileName), image);
       result = {
         status: 'SUCCESS',
-        provider: `Cloudflare Workers AI (${ai.MODELS.image})`,
+        provider: provider === 'huggingface' ? 'Hugging Face (FLUX.2 klein 9B Space)' : `Cloudflare Workers AI (${ai.MODELS.image})`,
         imageUrl: `/data/generated/${fileName}`,
         prompt,
         referenceProducts: refs.map(p => ({ id: p.id, title: p.title, category: p.category })),

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const db = require('../storage/database');
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 
 const ROOM_TYPES = ['living_room', 'bedroom', 'home_office', 'dining_room', 'kids_room', 'other'];
 

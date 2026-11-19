@@ -11,7 +11,7 @@ process.env.CLOUDFLARE_API_TOKEN = 'test';
 delete process.env.SERPAPI_API_KEY; // only IKEA (mocked below)
 
 const db = require('../src/storage/database');
-const ai = require('../src/ai/cloudflare');
+const ai = require('../src/ai');
 const { allocate } = require('../src/agents/budgetAgent');
 const { pickWithinBudget } = require('../src/agents/rankingAgent');
 const intake = require('../src/agents/intakeAgent');
@@ -62,6 +62,11 @@ test('intake: detects pets and children in Arabic and English', () => {
   assert.strictEqual(intake.detectOccupants('أنا وجوزي وعندنا قطة', 'adults'), 'pets');
   assert.strictEqual(intake.detectOccupants('we have a dog and two kids'), 'children_and_pets');
   assert.strictEqual(intake.detectOccupants('just me', 'adults'), 'adults');
+});
+
+test('intake: recognises "suggest for me" answers', () => {
+  for (const t of ['اقترح عليا انت الحاجات', 'على ذوقك', 'انت اختار', 'suggest something', 'up to you']) assert.ok(intake.wantsSuggestion(t), t);
+  for (const t of ['كنبة وسجادة', 'a sofa and a rug']) assert.ok(!intake.wantsSuggestion(t), t);
 });
 
 test('intake: asks in order and is complete only with all required fields', () => {
@@ -121,5 +126,28 @@ test('cloudflare client: reports the daily free limit clearly', async () => {
     await assert.rejects(ai.chat([{ role: 'user', content: 'hi' }]), err => err.code === 'DAILY_AI_LIMIT');
   } finally {
     global.fetch = realFetch;
+  }
+});
+
+test('ai router: switches to the next provider when one fails', async () => {
+  const realFetch = global.fetch;
+  process.env.GROQ_API_KEY = 'test';
+  const called = [];
+  global.fetch = async url => {
+    url = String(url);
+    if (url.includes('groq.com')) {
+      called.push('groq');
+      return new Response(JSON.stringify({ error: { message: 'rate limited' } }), { status: 429 });
+    }
+    called.push('cloudflare');
+    return new Response(JSON.stringify({ success: true, result: { response: 'hello from cloudflare' } }), { status: 200 });
+  };
+  try {
+    assert.strictEqual(await ai.chat([{ role: 'user', content: 'hi' }]), 'hello from cloudflare');
+    assert.deepStrictEqual(called, ['groq', 'cloudflare']);
+    assert.strictEqual(ai.lastProvider.chat, 'cloudflare');
+  } finally {
+    global.fetch = realFetch;
+    delete process.env.GROQ_API_KEY;
   }
 });

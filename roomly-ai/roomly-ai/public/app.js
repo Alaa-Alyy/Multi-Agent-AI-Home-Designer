@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const h = await api('/api/health');
       const ok = (el, text) => { el.textContent = text; el.style.borderColor = 'var(--accent-green)'; el.style.color = 'var(--accent-green)'; };
-      if (h.credentials.cloudflare) ok($('aiCred'), t('AI: active', 'الذكاء الاصطناعي: شغال'));
+      if (h.credentials.ai) ok($('aiCred'), t('AI: active', 'الذكاء الاصطناعي: شغال'));
       if (h.credentials.serpapi) ok($('searchCred'), t('Search: IKEA + Amazon', 'البحث: ايكيا + أمازون'));
     } catch { /* the page still works; errors appear when used */ }
   }

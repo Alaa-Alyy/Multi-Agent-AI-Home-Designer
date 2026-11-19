@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../storage/database');
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 
 const indexPath = path.join(__dirname, '../knowledge/vectorIndex.json');
 const kbPath = path.join(__dirname, '../knowledge/knowledgeBase.json');
@@ -41,9 +41,23 @@ class RAGAgent {
     const query = this.buildQuery(prefs, vision);
     console.log(`[RAG Agent] Query: "${query}"`);
 
-    const [queryVector] = await ai.embed([query]);
+    // Meaning-based search; if no embedding provider is available, fall back to keyword overlap
+    let retrieval = 'embeddings';
+    let scoreOf;
+    try {
+      const [queryVector] = await ai.embed([query]);
+      scoreOf = doc => ai.cosine(queryVector, doc.embedding);
+    } catch (err) {
+      console.warn(`[RAG Agent] Embeddings unavailable (${err.message}); using keyword matching.`);
+      retrieval = 'keywords';
+      const terms = query.toLowerCase().split(/[^a-z؀-ۿ]+/).filter(w => w.length > 2);
+      scoreOf = doc => {
+        const text = `${doc.title} ${doc.content}`.toLowerCase();
+        return terms.filter(t => text.includes(t)).length / Math.max(1, terms.length);
+      };
+    }
     const ranked = this.index.documents
-      .map(doc => ({ doc, score: ai.cosine(queryVector, doc.embedding) }))
+      .map(doc => ({ doc, score: scoreOf(doc) }))
       .sort((a, b) => b.score - a.score);
 
     const style = this.kb.styles.find(s => s.id === prefs.preferredStyle)
@@ -61,6 +75,7 @@ class RAGAgent {
 
     const result = {
       query,
+      retrieval,
       retrievedStyle: style,
       spatialRules: roomRules,
       colorRules: this.kb.colorRules,

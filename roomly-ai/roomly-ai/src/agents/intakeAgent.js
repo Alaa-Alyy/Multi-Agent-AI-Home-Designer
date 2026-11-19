@@ -4,7 +4,7 @@
 //   2) reply: natural Egyptian Arabic / English, told exactly which question to ask next
 // The final summary is built in code, so it always matches the saved brief.
 const db = require('../storage/database');
-const ai = require('../ai/cloudflare');
+const ai = require('../ai');
 const { ITEMS, ITEM_KEYS, DEFAULT_ITEMS, itemLabel } = require('../knowledge/items');
 
 const STYLES = ['modern', 'classic', 'minimalist', 'scandinavian', 'japandi', 'bohemian', 'industrial', 'mid_century_modern', 'modern_farmhouse', 'coastal'];
@@ -125,6 +125,11 @@ function detectOccupants(text, current) {
   return hasPets && hasKids ? 'children_and_pets' : hasPets ? 'pets' : 'children';
 }
 
+// Keyword safety net: "suggest for me" style answers to the items question
+function wantsSuggestion(text) {
+  return /(اقترح|اقتراح|انت اختار|إنت اختار|اختار انت|اختارلي|على ذوقك|زي ما تشوف|اللي تشوفه|suggest|recommend|you choose|you pick|up to you)/i.test(text || '');
+}
+
 const COLOR_AR = {
   beige: 'بيج', white: 'أبيض', 'off-white': 'أوف وايت', black: 'أسود', grey: 'رمادي', gray: 'رمادي', brown: 'بني',
   green: 'أخضر', 'olive green': 'أخضر زيتي', olive: 'زيتي', blue: 'أزرق', navy: 'كحلي', red: 'أحمر', pink: 'بمبي',
@@ -173,7 +178,7 @@ async function writeReply({ lang, vision, prefs, field, opening }) {
   const task = opening
     ? `In one short sentence say what you see in the room photo (from the facts below). Then ask about ${q[lang === 'ar' ? 'ar' : 'en']}. Give examples like: ${q.ex[lang === 'ar' ? 'ar' : 'en']}.`
     : `Briefly acknowledge the user's last message in a few words, then ask about ${q[lang === 'ar' ? 'ar' : 'en']}. Give examples like: ${q.ex[lang === 'ar' ? 'ar' : 'en']}.`;
-  const text = await ai.chat([
+  const ask = temperature => ai.chat([
     { role: 'system', content: `You are Roomly, a friendly interior design assistant in Egypt.
 ${STYLE_GUIDE[lang === 'ar' ? 'ar' : 'en']}
 Write at most 2 short sentences. Ask exactly ONE question. Output only the message text: no JSON, no labels, no quotes.
@@ -182,9 +187,31 @@ ROOM PHOTO FACTS: ${describeRoom(vision)}
 BRIEF SO FAR: ${JSON.stringify({ roomType: prefs.roomType, items: prefs.items, style: prefs.preferredStyle, colors: prefs.colors, budget: prefs.budget })}` },
     ...(prefs._lastUserMessage ? [{ role: 'user', content: prefs._lastUserMessage }] : []),
     { role: 'user', content: `TASK: ${task}` }
-  ], { maxTokens: 160, temperature: 0.5 });
-  return String(text).replace(/^["'\s]+|["'\s]+$/g, '').replace(/\{[\s\S]*\}/g, '').trim();
+  ], { maxTokens: 160, temperature });
+  const clean = t => String(t || '').replace(/\{[\s\S]*\}/g, '').replace(/^["'\s]+|["'\s]+$/g, '').trim();
+
+  // Models occasionally return an empty message: retry once, then use a written question
+  let text = '';
+  for (const temperature of [0.5, 0.8]) {
+    try {
+      text = clean(await ask(temperature));
+    } catch (err) {
+      console.warn(`[Intake Agent] Reply failed: ${err.message}`);
+    }
+    if (text.length >= 8) return text;
+  }
+  return FALLBACK_QUESTIONS[field][lang === 'ar' ? 'ar' : 'en'];
 }
+
+const FALLBACK_QUESTIONS = {
+  roomType: { ar: 'تمام! دي أنهي أوضة؟ معيشة، نوم، مكتب، ولا سفرة؟', en: 'Which room is this? Living room, bedroom, home office or dining room?' },
+  keepItems: { ar: 'فيه حاجة من العفش الموجود عايز تحتفظ بيها؟', en: 'Is there any existing furniture you want to keep?' },
+  items: { ar: 'عايز تشتري إيه بالظبط؟ كنبة، ترابيزة، سجادة... ولا أقترح عليك أنا؟', en: 'What would you like to buy? A sofa, coffee table, rug... or shall I suggest a list?' },
+  preferredStyle: { ar: 'بتحب أنهي ستايل؟ مودرن، كلاسيك، مينيمال، ولا بوهيمي؟', en: 'Which style do you like? Modern, classic, minimalist or bohemian?' },
+  colors: { ar: 'بتحب أنهي ألوان؟ وفيه ألوان مش بتحبها؟', en: 'Which colours do you like, and any you dislike?' },
+  occupants: { ar: 'مين هيستخدم الأوضة؟ كبار بس، فيه أطفال، ولا عندكم حيوانات أليفة؟', en: 'Who uses the room: only adults, children, or pets?' },
+  budget: { ar: 'الميزانية الكلية كام بالجنيه؟ مثلاً ٢٥ ألف جنيه.', en: 'What is your total budget in Egyptian pounds? For example 25,000 EGP.' }
+};
 
 class IntakeAgent {
   // First message after the photo has been analysed
@@ -215,6 +242,10 @@ class IntakeAgent {
       ], { schema: EXTRACT_SCHEMA, temperature: 0, maxTokens: 400 });
     } catch (err) {
       console.warn('[Intake Agent] Extraction failed:', err.message);
+    }
+    if (process.env.ROOMLY_DEBUG) console.log('[Intake Agent] extracted:', JSON.stringify(extracted));
+    if (!before.items?.length && !extracted?.items?.length && wantsSuggestion(messageText)) {
+      extracted = { ...extracted, useDefaultItems: true };
     }
     const updates = cleanUpdates(extracted, before);
     const occupants = detectOccupants(messageText, updates.occupants || before.occupants);
@@ -260,4 +291,5 @@ module.exports.missingFields = missingFields;
 module.exports.cleanUpdates = cleanUpdates;
 module.exports.nextField = nextField;
 module.exports.detectOccupants = detectOccupants;
+module.exports.wantsSuggestion = wantsSuggestion;
 module.exports.STYLES = STYLES;
